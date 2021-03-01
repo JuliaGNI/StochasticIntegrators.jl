@@ -17,7 +17,7 @@ module StochasticIntegrators
 
 
     import GeometricIntegrators.Integrators
-    import GeometricIntegrators.Integrators: Integrator, Parameters, equation, equations, parameters, nstages, timestep, tableau
+    import GeometricIntegrators.Integrators: Integrator, Parameters
     
     import GeometricIntegrators.Integrators: integrate!, integrate_common!, get_internal_variables
 

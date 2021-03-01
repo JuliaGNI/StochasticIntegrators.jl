@@ -1,5 +1,4 @@
 
-using GeometricIntegrators
 using StochasticIntegrators
 using GeometricProblems.KuboOscillator
 using Test

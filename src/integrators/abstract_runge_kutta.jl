@@ -4,13 +4,13 @@ abstract type StochasticIntegratorPRK{dType, tType, D, M, S} <: PSDEIntegrator{d
 
 AbstractStochasticIntegratorRK{DT,TT,D,M,S} = Union{StochasticIntegratorRK{DT,TT,D,M,S}, StochasticIntegratorPRK{DT,TT,D,M,S}}
 
-@inline Integrators.parameters(integrator::AbstractStochasticIntegratorRK) = integrator.params
-@inline Integrators.equation(integrator::AbstractStochasticIntegratorRK, i::Symbol) = integrator.params.equs[i]
-@inline Integrators.equations(integrator::AbstractStochasticIntegratorRK) = integrator.params.equs
-@inline Integrators.timestep(integrator::AbstractStochasticIntegratorRK) = integrator.params.Δt
-@inline Integrators.tableau(integrator::AbstractStochasticIntegratorRK)  = integrator.params.tab
+@inline parameters(integrator::AbstractStochasticIntegratorRK) = integrator.params
+@inline equation(integrator::AbstractStochasticIntegratorRK, i::Symbol) = integrator.params.equs[i]
+@inline equations(integrator::AbstractStochasticIntegratorRK) = integrator.params.equs
+@inline timestep(integrator::AbstractStochasticIntegratorRK) = integrator.params.Δt
+@inline tableau(integrator::AbstractStochasticIntegratorRK)  = integrator.params.tab
 
-@inline Integrators.nstages(::AbstractStochasticIntegratorRK{DT,TT,D,M,S}) where {DT,TT,D,M,S} = S
+@inline nstages(::AbstractStochasticIntegratorRK{DT,TT,D,M,S}) where {DT,TT,D,M,S} = S
 @inline noisedims(::AbstractStochasticIntegratorRK{DT,TT,D,M,S}) where {DT,TT,D,M,S} = M
 @inline Base.ndims(::AbstractStochasticIntegratorRK{DT,TT,D,M,S}) where {DT,TT,D,M,S} = D
 @inline Base.eltype(::AbstractStochasticIntegratorRK{DT}) where {DT} = DT
