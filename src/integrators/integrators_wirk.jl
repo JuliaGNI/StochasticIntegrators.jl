@@ -20,11 +20,11 @@ Orders stored in qdrift and qdiff are understood as the classical orders of thes
 struct TableauWIRK{T} <: AbstractTableauIRK{T}
     name::Symbol
     s::Int
-    qdrift0::CoefficientsRK{T}
-    qdrift1::CoefficientsRK{T}
-    qdiff0::CoefficientsRK{T}
-    qdiff1::CoefficientsRK{T}
-    qdiff3::CoefficientsRK{T}
+    qdrift0::Tableau{T}
+    qdrift1::Tableau{T}
+    qdiff0::Tableau{T}
+    qdiff1::Tableau{T}
+    qdiff3::Tableau{T}
 
     function TableauWIRK{T}(name, s, qdrift0, qdrift1, qdiff0, qdiff1, qdiff3) where {T}
         @assert s == qdrift0.s == qdrift1.s == qdiff0.s == qdiff1.s == qdiff3.s
@@ -32,7 +32,7 @@ struct TableauWIRK{T} <: AbstractTableauIRK{T}
     end
 end
 
-function TableauWIRK(name::Symbol, qdrift0::CoefficientsRK{T}, qdrift1::CoefficientsRK{T}, qdiff0::CoefficientsRK{T}, qdiff1::CoefficientsRK{T}, qdiff3::CoefficientsRK{T}) where {T}
+function TableauWIRK(name::Symbol, qdrift0::Tableau{T}, qdrift1::Tableau{T}, qdiff0::Tableau{T}, qdiff1::Tableau{T}, qdiff3::Tableau{T}) where {T}
     TableauWIRK{T}(name, qdrift0.s, qdrift0, qdrift1, qdiff0, qdiff1, qdiff3)
 end
 
@@ -40,11 +40,11 @@ function TableauWIRK(name::Symbol, A0::Matrix{T}, A1::Matrix{T},
                                    B0::Matrix{T}, B1::Matrix{T}, B3::Matrix{T},
                                     α::Vector{T}, β1::Vector{T},
                                    c0::Vector{T}, c1::Vector{T} ) where {T}
-    TableauWIRK(name, CoefficientsRK(name, 0, A0, α, c0),
-                      CoefficientsRK(name, 0, A1, α, c1),
-                      CoefficientsRK(name, 0, B0, β1, c0),
-                      CoefficientsRK(name, 0, B1, β1, c1),
-                      CoefficientsRK(name, 0, B3, β1, c1))
+    TableauWIRK(name, Tableau(name, 0, A0, α, c0),
+                      Tableau(name, 0, A1, α, c1),
+                      Tableau(name, 0, B0, β1, c0),
+                      Tableau(name, 0, B1, β1, c1),
+                      Tableau(name, 0, B3, β1, c1))
 end
 
 
@@ -144,7 +144,7 @@ struct IntegratorWIRK{DT, TT, D, M, S,
     end
 
     function IntegratorWIRK(equation::SDE{DT,TT}, tableau::TableauWIRK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorWIRK{DT, ndims(equation), equation.m}(get_function_tuple(equation), tableau, Δt; kwargs...)
+        IntegratorWIRK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
     end
 end
 

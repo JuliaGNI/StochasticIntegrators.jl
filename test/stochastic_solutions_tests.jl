@@ -120,7 +120,7 @@ end
     # @test sol != sol1
     # TODO Reactivate!
 
-    @test sol == SSolutionSDE(sde, Δt, sol.W.ΔW, sol.W.ΔZ, sol.ntime)
+    @test sol == SolutionSDE(sde, Δt, sol.W.ΔW, sol.W.ΔZ, sol.ntime)
 
     @test nsave(sol) == 1
     @test ntime(sol) == nt
@@ -180,7 +180,7 @@ end
     # write_to_hdf5(sol1)
     # close(sol1)
     # @test isfile(h5file)
-    # sol2 = SSolutionSDE(h5file)
+    # sol2 = SolutionSDE(h5file)
     # @test sol1   != sol2
     # @test sol1.t == sol2.t
     # @test sol1.q == sol2.q
@@ -199,7 +199,7 @@ end
     # write_to_hdf5(sol1)
     # close(sol1)
     # @test isfile(h5file)
-    # sol2 = SSolutionSDE(h5file)
+    # sol2 = SolutionSDE(h5file)
     # @test sol1   != sol2
     # @test sol1.t == sol2.t
     # @test sol1.q == sol2.q
@@ -219,7 +219,7 @@ end
     # write_to_hdf5(sol1)
     # close(sol1)
     # @test isfile(h5file)
-    # sol2 = SSolutionSDE(h5file)
+    # sol2 = SolutionSDE(h5file)
     # @test sol2.W.ΔW == zeros(eltype(q1), 0, 0, 0)
     # @test sol2.W.ΔZ == zeros(eltype(q1), 0, 0, 0)
     # rm(h5file)
@@ -254,7 +254,7 @@ end
     #     reset!(sol1)
     # end
     # close(sol1)
-    # sol2 = SSolutionSDE(h5file)
+    # sol2 = SolutionSDE(h5file)
     # @test sol2.t.t ≈ Δt .* collect(0:100) atol=1E-14
     # @test sol2.q.d == hcat(reshape(sde1.q₀, (ndims(sde1),1)), x100)
     # @test sol2.W.ΔW == ΔW
@@ -278,7 +278,7 @@ end
     #     reset!(sol1)
     # end
     # close(sol1)
-    # sol2 = SSolutionSDE(h5file)
+    # sol2 = SolutionSDE(h5file)
     # @test sol2.t.t ≈ Δt .* collect(0:2:100) atol=1E-14
     # @test sol2.q.d == hcat(reshape(sde1.q₀, (ndims(sde1),1)), x100)[:,1:2:end]
     # @test sol2.W.ΔW == ΔW
@@ -328,7 +328,7 @@ end
     # @test sol != sol1
     # TODO Reactivate!
 
-    @test sol == SSolutionPSDE(psde, Δt, sol.W.ΔW, sol.W.ΔZ, sol.ntime)
+    @test sol == SolutionPSDE(psde, Δt, sol.W.ΔW, sol.W.ΔZ, sol.ntime)
 
     @test nsave(sol) == 1
     @test ntime(sol) == nt

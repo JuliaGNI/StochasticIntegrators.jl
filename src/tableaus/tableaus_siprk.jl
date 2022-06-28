@@ -23,6 +23,6 @@ end
 function TableauStochasticStoermerVerlet()
 
     TableauSIPRK(:StochasticStoermerVerlet,
-                 CoefficientsLobattoIIIA(2), CoefficientsLobattoIIIA(2),
-                 CoefficientsLobattoIIIB(2), CoefficientsLobattoIIIB(2))
+                 TableauLobattoIIIA(2), TableauLobattoIIIA(2),
+                 TableauLobattoIIIB(2), TableauLobattoIIIB(2))
 end

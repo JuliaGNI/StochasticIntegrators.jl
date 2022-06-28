@@ -1,4 +1,5 @@
 
+using RungeKutta
 using StochasticIntegrators
 using GeometricProblems.KuboOscillator
 using Test
@@ -73,7 +74,7 @@ end
     sol_sto = Solution(sde1, Δt, zeros(1, nt), zeros(1, nt), nt, conv=:strong)
     integrate!(int_sto, sol_sto)
 
-    int_det = Integrator(ode, TableauGLRK(1), Δt)
+    int_det = Integrator(ode, TableauGauss(1), Δt)
     sol_det = Solution(ode, Δt, nt)
     integrate!(int_det, sol_det)
 

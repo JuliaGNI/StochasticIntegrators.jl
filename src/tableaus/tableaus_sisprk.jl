@@ -7,9 +7,9 @@ Tableau for the 2-stage stochastic LobattoIIIA-IIIB-IIID method
 """
 function TableauStochasticLobattoIIIABD2()
 
-    TableauSISPRK(:StochasticLobattoIIIABD2, CoefficientsLobattoIIIA(2), CoefficientsLobattoIIIA(2),
-                                         CoefficientsLobattoIIIB(2), CoefficientsLobattoIIID(2),
-                                         CoefficientsLobattoIIIB(2), CoefficientsLobattoIIID(2))
+    TableauSISPRK(:StochasticLobattoIIIABD2, TableauLobattoIIIA(2), TableauLobattoIIIA(2),
+                                         TableauLobattoIIIB(2), TableauLobattoIIID(2),
+                                         TableauLobattoIIIB(2), TableauLobattoIIID(2))
 end
 
 
@@ -32,7 +32,7 @@ function TableauModifiedStochasticStoermerVerlet(c::Number=0.0)
     c_drift2 = [c, c]
 
     TableauSISPRK(:StochasticModifiedStormerVerlet,
-                  CoefficientsLobattoIIIA(2), CoefficientsLobattoIIIA(2),
-                  CoefficientsLobattoIIIB(2), CoefficientsRK(typeof(c), :cTableau, 1, a_drift2, b_drift2, c_drift2),
-                  CoefficientsLobattoIIIB(2), CoefficientsLobattoIIIB(2))
+                  TableauLobattoIIIA(2), TableauLobattoIIIA(2),
+                  TableauLobattoIIIB(2), Tableau(:cTableau, 1, a_drift2, b_drift2, c_drift2),
+                  TableauLobattoIIIB(2), TableauLobattoIIIB(2))
 end

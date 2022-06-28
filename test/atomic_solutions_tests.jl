@@ -38,8 +38,8 @@ end
     @test get_solution(asol) == (t0, x0)
     @test asol.t  == t0
     @test asol.q  == x0
-    @test asol.t̅ == zero(t0)
-    @test asol.q̅ == zero(x0)
+    @test asol.t̄ == zero(t0)
+    @test asol.q̄ == zero(x0)
 
     set_increments!(asol, (ΔW, ΔZ))
     δW = zero(ΔW)
@@ -52,8 +52,8 @@ end
     @test δZ == ΔZ
 
     reset!(asol, Δt)
-    @test asol.t̅ == t0
-    @test asol.q̅ == x0
+    @test asol.t̄ == t0
+    @test asol.q̄ == x0
 
     update!(asol, v0)
     @test asol.t == t0  + Δt
@@ -72,9 +72,9 @@ end
     @test asol.t  == t0
     @test asol.q  == q0
     @test asol.p  == p0
-    @test asol.t̅  == zero(t0)
-    @test asol.q̅  == zero(q0)
-    @test asol.p̅  == zero(p0)
+    @test asol.t̄  == zero(t0)
+    @test asol.q̄  == zero(q0)
+    @test asol.p̄  == zero(p0)
 
     set_increments!(asol, (ΔW, ΔZ))
     δW = zero(ΔW)
@@ -87,9 +87,9 @@ end
     @test δZ == ΔZ
 
     reset!(asol, Δt)
-    @test asol.t̅ == t0
-    @test asol.q̅ == q0
-    @test asol.p̅ == p0
+    @test asol.t̄ == t0
+    @test asol.q̄ == q0
+    @test asol.p̄ == p0
 
     update!(asol, y0, z0)
     @test asol.t == t0  + Δt

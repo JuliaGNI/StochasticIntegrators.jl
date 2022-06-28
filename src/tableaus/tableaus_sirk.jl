@@ -1,6 +1,6 @@
 "Tableau for the s-stage Gauss-Lobatto SFIRK method"
 function TableauStochasticGLRK(s::Int)
-    TableauSIRK(Symbol("StochasticGLRK" * string(s)), CoefficientsGLRK(s), CoefficientsGLRK(s))
+    TableauSIRK(Symbol("StochasticGLRK" * string(s)), TableauGauss(s), TableauGauss(s))
 end
 
 

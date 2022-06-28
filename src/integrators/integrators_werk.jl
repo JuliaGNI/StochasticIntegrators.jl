@@ -23,14 +23,14 @@ struct TableauWERK{T} <: AbstractTableauERK{T}
     name::Symbol
     s::Int
 
-    qdrift0::CoefficientsRK{T}
-    qdrift1::CoefficientsRK{T}
-    qdrift2::CoefficientsRK{T}
+    qdrift0::Tableau{T}
+    qdrift1::Tableau{T}
+    qdrift2::Tableau{T}
 
-    qdiff0::CoefficientsRK{T}
-    qdiff1::CoefficientsRK{T}
-    qdiff2::CoefficientsRK{T}
-    qdiff3::CoefficientsRK{T}
+    qdiff0::Tableau{T}
+    qdiff1::Tableau{T}
+    qdiff2::Tableau{T}
+    qdiff3::Tableau{T}
 
     function TableauWERK{T}(name, qdrift0, qdrift1, qdrift2, qdiff0, qdiff1, qdiff2, qdiff3) where {T}
         @assert qdrift0.s == qdrift1.s == qdrift2.s == qdiff0.s == qdiff1.s == qdiff2.s == qdiff3.s
@@ -53,8 +53,8 @@ struct TableauWERK{T} <: AbstractTableauERK{T}
     end
 end
 
-function TableauWERK(name, qdrift0::CoefficientsRK{T}, qdrift1::CoefficientsRK{T}, qdrift2::CoefficientsRK{T},
-                            qdiff0::CoefficientsRK{T}, qdiff1::CoefficientsRK{T}, qdiff2::CoefficientsRK{T}, qdiff3::CoefficientsRK{T}) where {T}
+function TableauWERK(name, qdrift0::Tableau{T}, qdrift1::Tableau{T}, qdrift2::Tableau{T},
+                            qdiff0::Tableau{T}, qdiff1::Tableau{T}, qdiff2::Tableau{T}, qdiff3::Tableau{T}) where {T}
     TableauWERK{T}(name, qdrift0, qdrift1, qdrift2, qdiff0, qdiff1, qdiff2, qdiff3)
 end
 
@@ -62,8 +62,8 @@ function TableauWERK(name::Symbol, A0::Matrix{T}, A1::Matrix{T}, A2::Matrix{T},
                                    B0::Matrix{T}, B1::Matrix{T}, B2::Matrix{T}, B3::Matrix{T},
                                     α::Vector{T}, β1::Vector{T}, β2::Vector{T},
                                    c0::Vector{T}, c1::Vector{T}, c2::Vector{T} ) where {T}
-    TableauWERK{T}(name, CoefficientsRK(name, 0, A0, α, c0), CoefficientsRK(name, 0, A1, α, c1), CoefficientsRK(name, 0, A2, α, c2),
-                         CoefficientsRK(name, 0, B0, β1, c0), CoefficientsRK(name, 0, B1, β1, c1), CoefficientsRK(name, 0, B2, β1, c2), CoefficientsRK(name, 0, B3, β2, c1))
+    TableauWERK{T}(name, Tableau(name, 0, A0, α, c0), Tableau(name, 0, A1, α, c1), Tableau(name, 0, A2, α, c2),
+                         Tableau(name, 0, B0, β1, c0), Tableau(name, 0, B1, β1, c1), Tableau(name, 0, B2, β1, c2), Tableau(name, 0, B3, β2, c1))
 end
 
 
@@ -137,7 +137,7 @@ struct IntegratorWERK{DT, TT, D, M, S, ET} <: StochasticIntegratorRK{DT,TT,D,M,S
     end
 
     function IntegratorWERK(equation::SDE{DT,TT}, tableau::TableauWERK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorWERK{DT, ndims(equation), equation.m}(get_function_tuple(equation), tableau, Δt; kwargs...)
+        IntegratorWERK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
     end
 end
 
@@ -154,11 +154,11 @@ function Integrators.integrate_step!(int::IntegratorWERK{DT,TT}, sol::AtomicSolu
 
     # THE FIRST INTERNAL STAGES ARE ALL EQUAL TO THE PREVIOUS STEP SOLUTION
     # calculates v(t,tQ0) and assigns to the 1st column of V
-    equation(int, :v)(sol.t̅, sol.q̅, cache.V[1])
+    equation(int, :v)(sol.t̄, sol.q̄, cache.V[1])
     # calculates B(t,Q) and assigns to the matrix B1[1]
     # no need to calculate the columns of B separately, because all internal stages
     # for i=1 are equal to int.q[r,m]
-    equation(int, :B)(sol.t̅, sol.q̅, cache.B1[1])
+    equation(int, :B)(sol.t̄, sol.q̄, cache.B1[1])
     # copy B1[i] to B2[i] (they're equal for i=1)
     cache.B2[1] .= cache.B1[1]
 
@@ -179,7 +179,7 @@ function Integrators.integrate_step!(int::IntegratorWERK{DT,TT}, sol::AtomicSolu
                 end
             end
 
-            cache.Q0[k] = sol.q̅[k] + timestep(int) * ydrift + dot(cache.Δy, sol.ΔW)
+            cache.Q0[k] = sol.q̄[k] + timestep(int) * ydrift + dot(cache.Δy, sol.ΔW)
         end
 
         # Calculating the internal stages H^(l)_i for l=1..sol.nm
@@ -205,7 +205,7 @@ function Integrators.integrate_step!(int::IntegratorWERK{DT,TT}, sol::AtomicSolu
                     end
                 end
 
-                cache.Q1[noise_idx][k] = sol.q̅[k] + timestep(int) * ydrift + dot(cache.Δy, sol.ΔW)
+                cache.Q1[noise_idx][k] = sol.q̄[k] + timestep(int) * ydrift + dot(cache.Δy, sol.ΔW)
             end
         end
 
@@ -234,17 +234,17 @@ function Integrators.integrate_step!(int::IntegratorWERK{DT,TT}, sol::AtomicSolu
                     end
                 end
 
-                cache.Q2[noise_idx][k] = sol.q̅[k] + timestep(int) * ydrift + ydiff2/sqrt(timestep(int))
+                cache.Q2[noise_idx][k] = sol.q̄[k] + timestep(int) * ydrift + ydiff2/sqrt(timestep(int))
             end
         end
 
         # CALCULATING THE NEW VALUES OF V
-        tᵢ = sol.t̅ + timestep(int) * tableau(int).qdrift0.c[i]
+        tᵢ = sol.t̄ + timestep(int) * tableau(int).qdrift0.c[i]
         equation(int, :v)(tᵢ, cache.Q0, cache.V[i])
 
         # CALCULATING THE NEW VALUES OF B1
         # each column of B evaluated at a different internal stage
-        tᵢ = sol.t̅ + timestep(int) * tableau(int).qdrift1.c[i]
+        tᵢ = sol.t̄ + timestep(int) * tableau(int).qdrift1.c[i]
 
         for l in eachnoise(int)
             equation(int, :B)(tᵢ, cache.Q1[l], cache.B1[i], l)
@@ -252,7 +252,7 @@ function Integrators.integrate_step!(int::IntegratorWERK{DT,TT}, sol::AtomicSolu
 
         # CALCULATING THE NEW VALUES OF B2
         # each column of B evaluated at a different internal stage
-        tᵢ = sol.t̅ + timestep(int) * tableau(int).qdrift2.c[i]
+        tᵢ = sol.t̄ + timestep(int) * tableau(int).qdrift2.c[i]
 
         for l in eachnoise(int)
             equation(int, :B)(tᵢ, cache.Q2[l], cache.B2[i], l)

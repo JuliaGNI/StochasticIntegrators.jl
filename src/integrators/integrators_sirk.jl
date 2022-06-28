@@ -13,8 +13,8 @@ Orders stored in `qdrift` and `qdiff` are understood as the classical orders of 
 struct TableauSIRK{T} <: AbstractTableauIRK{T}
     name::Symbol
     s::Int
-    qdrift::CoefficientsRK{T}
-    qdiff::CoefficientsRK{T}
+    qdrift::Tableau{T}
+    qdiff::Tableau{T}
 
     function TableauSIRK{T}(name, s, qdrift, qdiff) where {T}
         @assert s == qdrift.s == qdiff.s
@@ -22,12 +22,12 @@ struct TableauSIRK{T} <: AbstractTableauIRK{T}
     end
 end
 
-function TableauSIRK(name::Symbol, qdrift::CoefficientsRK{T}, qdiff::CoefficientsRK{T}) where {T}
+function TableauSIRK(name::Symbol, qdrift::Tableau{T}, qdiff::Tableau{T}) where {T}
     TableauSIRK{T}(name, qdrift.s, qdrift, qdiff)
 end
 
 function TableauSIRK(name::Symbol, order_drift::Int, a_drift::Matrix{T}, b_drift::Vector{T}, c_drift::Vector{T}, order_diff::Int, a_diff::Matrix{T}, b_diff::Vector{T}, c_diff::Vector{T}) where {T}
-    TableauSIRK{T}(name, length(c_drift), CoefficientsRK(name, order_drift, a_drift, b_drift, c_drift), CoefficientsRK(name, order_diff, a_diff, b_diff, c_diff))
+    TableauSIRK{T}(name, length(c_drift), Tableau(name, order_drift, a_drift, b_drift, c_drift), Tableau(name, order_diff, a_diff, b_diff, c_diff))
 end
 
 # TODO function readTableauSIRKFromFile(dir::AbstractString, name::AbstractString)
@@ -149,7 +149,7 @@ struct IntegratorSIRK{DT, TT, D, M, S,
     end
 
     function IntegratorSIRK(equation::SDE{DT,TT}, tableau::TableauSIRK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorSIRK{DT, ndims(equation), equation.m}(get_function_tuple(equation), tableau, Δt; kwargs...)
+        IntegratorSIRK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
     end
 end
 
@@ -181,7 +181,7 @@ function initial_guess!(int::IntegratorSIRK{DT,TT}, sol::AtomicSolutionSDE{DT,TT
     local t2::TT
     local Δt_local::TT
 
-    # Evaluating the functions v and B at t,q - same for all stages
+    # Evaluating the get_functions v and B at t,q - same for all stages
     int.params.equ[:v](int.params.t, int.params.q, cache.V1)
     int.params.equ[:B](int.params.t, int.params.q, cache.B1)
 

@@ -18,15 +18,16 @@ Contains all fields necessary to store the solution of an SDE.
 * `nsave`: save every nsave'th time step
 
 """
-abstract type SolutionSDE{dType, tType, wType, NQ, NW, CONV} <: StochasticSolution{dType, tType, wType, NQ, NW} end
+abstract type AbstractSolutionSDE{dType, tType, wType, NQ, NW, CONV} <: StochasticSolution{dType, tType, wType, NQ, NW} end
 
 # Create SolutionSDEs with serial and parallel data structures.
 for (TSolution, TDataSeries, Tdocstring) in
-    ((:SSolutionSDE, :SDataSeries, "Serial Solution of a stochastic differential equation."),
-     (:PSolutionSDE, :PDataSeries, "Parallel Solution of a stochastic differential equation."))
+    ((:SolutionSDE, :DataSeries, "Serial Solution of a stochastic differential equation."),
+    #  (:PSolutionSDE, :PDataSeries, "Parallel Solution of a stochastic differential equation.")
+    )
     @eval begin
         $Tdocstring
-        mutable struct $TSolution{dType, tType, wType, NQ, NW, CONV} <: SolutionSDE{dType, tType, wType, NQ, NW, CONV}
+        mutable struct $TSolution{dType, tType, wType, NQ, NW, CONV} <: AbstractSolutionSDE{dType, tType, wType, NQ, NW, CONV}
             nd::Int
             nm::Int
             nt::Int
@@ -246,8 +247,8 @@ Base.:(==)(sol1::SolutionSDE{DT1,TT1,NQ1,NW1,C1}, sol2::SolutionSDE{DT2,TT2,NQ2,
 @inline ioffset(sol::SolutionSDE) = sol.ioffset
 @inline Solutions.lastentry(sol::SolutionSDE) = sol.ni == 1 ? sol.counter[1] - 1 : sol.counter .- 1
 @inline conv(sol::SolutionSDE{DT,TT,WT,NQ,NW,CONV}) where {DT,TT,WT,NQ,NW,CONV} = CONV
-@inline Common.ntime(sol::SolutionSDE) = sol.ntime
-@inline Common.periodicity(sol::SolutionSDE) = sol.periodicity
+@inline GeometricBase.ntime(sol::SolutionSDE) = sol.ntime
+@inline GeometricBase.periodicity(sol::SolutionSDE) = sol.periodicity
 
 
 function Solutions.set_initial_conditions!(sol::SolutionSDE, equ::SDE)
@@ -368,7 +369,7 @@ function get_increments!(sol::SolutionSDE{AT,TT,WT,NQ,3}, asol::AtomicSolutionSD
 end
 
 
-function Common.reset!(sol::SolutionSDE)
+function GeometricBase.reset!(sol::SolutionSDE)
     reset!(sol.q)
     compute_timeseries!(sol.t, sol.t[end])
     generate_wienerprocess!(sol.W)

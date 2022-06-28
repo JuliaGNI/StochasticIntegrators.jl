@@ -11,9 +11,9 @@ struct TableauSERK{T} <: AbstractTableauERK{T}
     name::Symbol
     s::Int
 
-    qdrift::CoefficientsRK{T}
-    qdiff::CoefficientsRK{T}
-    qdiff2::CoefficientsRK{T}
+    qdrift::Tableau{T}
+    qdiff::Tableau{T}
+    qdiff2::Tableau{T}
 
     function TableauSERK{T}(name, qdrift, qdiff, qdiff2) where {T}
         @assert qdrift.s == qdiff.s == qdiff2.s
@@ -28,25 +28,25 @@ struct TableauSERK{T} <: AbstractTableauERK{T}
     end
 end
 
-function TableauSERK(name, qdrift::CoefficientsRK{T}, qdiff::CoefficientsRK{T}, qdiff2::CoefficientsRK{T}) where {T}
+function TableauSERK(name, qdrift::Tableau{T}, qdiff::Tableau{T}, qdiff2::Tableau{T}) where {T}
     TableauSERK{T}(name, qdrift, qdiff, qdiff2)
 end
 
-function TableauSERK(name, qdrift::CoefficientsRK{T}, qdiff::CoefficientsRK{T}) where {T}
-    TableauSERK{T}(name, qdrift, qdiff, CoefficientsRK(T, :NULL, 0, zero(qdrift.a), zero(qdrift.b), zero(qdrift.c)) )
+function TableauSERK(name, qdrift::Tableau{T}, qdiff::Tableau{T}) where {T}
+    TableauSERK{T}(name, qdrift, qdiff, Tableau(T, :NULL, 0, zero(qdrift.a), zero(qdrift.b), zero(qdrift.c)) )
 end
 
 function TableauSERK(name::Symbol, order_drift::Int, a_drift::Matrix{T}, b_drift::Vector{T}, c_drift::Vector{T},
                                     order_diff::Int, a_diff::Matrix{T}, b_diff::Vector{T}, c_diff::Vector{T},
                                     order_diff2::Int, a_diff2::Matrix{T}, b_diff2::Vector{T}, c_diff2::Vector{T}) where {T}
-    TableauSERK{T}(name, CoefficientsRK(name, order_drift, a_drift, b_drift, c_drift), CoefficientsRK(name, order_diff, a_diff, b_diff, c_diff),
-                    CoefficientsRK(name, order_diff2, a_diff2, b_diff2, c_diff2))
+    TableauSERK{T}(name, Tableau(name, order_drift, a_drift, b_drift, c_drift), Tableau(name, order_diff, a_diff, b_diff, c_diff),
+                    Tableau(name, order_diff2, a_diff2, b_diff2, c_diff2))
 end
 
 function TableauSERK(name::Symbol, order_drift::Int, a_drift::Matrix{T}, b_drift::Vector{T}, c_drift::Vector{T},
                                     order_diff::Int, a_diff::Matrix{T}, b_diff::Vector{T}, c_diff::Vector{T}) where {T}
-    TableauSERK{T}(name, CoefficientsRK(name, order_drift, a_drift, b_drift, c_drift), CoefficientsRK(name, order_diff, a_diff, b_diff, c_diff),
-                    CoefficientsRK(:NULL, 0, zero(a_drift), zero(b_drift), zero(c_drift)))
+    TableauSERK{T}(name, Tableau(name, order_drift, a_drift, b_drift, c_drift), Tableau(name, order_diff, a_diff, b_diff, c_diff),
+                    Tableau(:NULL, 0, zero(a_drift), zero(b_drift), zero(c_drift)))
 end
 
 
@@ -111,7 +111,7 @@ struct IntegratorSERK{DT, TT, D, M, S, ET <: NamedTuple} <: StochasticIntegrator
     end
 
     function IntegratorSERK(equation::SDE{DT,TT}, tableau::TableauSERK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorSERK{DT, ndims(equation), equation.m}(get_function_tuple(equation), tableau, Δt; kwargs...)
+        IntegratorSERK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
     end
 end
 
@@ -141,7 +141,7 @@ function Integrators.integrate_step!(int::IntegratorSERK{DT,TT}, sol::AtomicSolu
                 end
             end
 
-            cache.Q[i][k] = sol.q̅[k] + timestep(int) * ydrift + dot(cache.Δy, sol.ΔW)
+            cache.Q[i][k] = sol.q̄[k] + timestep(int) * ydrift + dot(cache.Δy, sol.ΔW)
 
             # ΔZ contribution from the diffusion part
             if tableau(int).qdiff2.name ≠ :NULL
@@ -157,7 +157,7 @@ function Integrators.integrate_step!(int::IntegratorSERK{DT,TT}, sol::AtomicSolu
 
         end
 
-        tᵢ = sol.t̅ + timestep(int) * tableau(int).qdrift.c[i]
+        tᵢ = sol.t̄ + timestep(int) * tableau(int).qdrift.c[i]
         equation(int, :v)(tᵢ, cache.Q[i], cache.V[i])
         equation(int, :B)(tᵢ, cache.Q[i], cache.B[i])
     end

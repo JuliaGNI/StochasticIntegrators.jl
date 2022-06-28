@@ -1,4 +1,11 @@
 
+# These definitions are temporarily required for compatibility and should be removed
+# as soon as the whole StochasticIntegrator package is adapted to the current state
+# of GeometricIntegrators.
+abstract type AbstractTableau{T} end
+abstract type AbstractTableauERK{T} <: AbstractTableau{T} end
+abstract type AbstractTableauIRK{T} <: AbstractTableau{T} end
+
 abstract type StochasticIntegratorRK{dType, tType, D, M, S} <: SDEIntegrator{dType, tType} end
 abstract type StochasticIntegratorPRK{dType, tType, D, M, S} <: PSDEIntegrator{dType, tType} end
 

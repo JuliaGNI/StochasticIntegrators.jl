@@ -13,12 +13,12 @@ Orders stored in `qdrift` and `qdiff` are understood as the classical orders of 
 struct TableauSISPRK{T} <: AbstractTableauIRK{T}
     name::Symbol
     s::Int
-    qdrift ::CoefficientsRK{T}
-    qdiff  ::CoefficientsRK{T}
-    pdrift1::CoefficientsRK{T}
-    pdrift2::CoefficientsRK{T}
-    pdiff1 ::CoefficientsRK{T}
-    pdiff2 ::CoefficientsRK{T}
+    qdrift ::Tableau{T}
+    qdiff  ::Tableau{T}
+    pdrift1::Tableau{T}
+    pdrift2::Tableau{T}
+    pdiff1 ::Tableau{T}
+    pdiff2 ::Tableau{T}
 
     function TableauSISPRK{T}(name, s, qdrift, qdiff, pdrift1, pdrift2, pdiff1, pdiff2) where {T}
         @assert s == qdrift.s == qdiff.s == pdrift1.s == pdrift2.s == pdiff1.s == pdiff2.s
@@ -26,10 +26,10 @@ struct TableauSISPRK{T} <: AbstractTableauIRK{T}
     end
 end
 
-function TableauSISPRK(name::Symbol, qdrift::CoefficientsRK{T},
-                                     qdiff::CoefficientsRK{T},
-                                     pdrift1::CoefficientsRK{T}, pdrift2::CoefficientsRK{T},
-                                     pdiff1::CoefficientsRK{T}, pdiff2::CoefficientsRK{T}) where {T}
+function TableauSISPRK(name::Symbol, qdrift::Tableau{T},
+                                     qdiff::Tableau{T},
+                                     pdrift1::Tableau{T}, pdrift2::Tableau{T},
+                                     pdiff1::Tableau{T}, pdiff2::Tableau{T}) where {T}
     TableauSISPRK{T}(name, qdrift.s, qdrift, qdiff, pdrift1, pdrift2, pdiff1, pdiff2)
 end
 
@@ -39,12 +39,12 @@ function TableauSISPRK(name::Symbol, qorder_drift::Int, qa_drift::Matrix{T}, qb_
                                       porder2_drift::Int, pa2_drift::Matrix{T}, pb2_drift::Vector{T}, pc2_drift::Vector{T},
                                       porder1_diff::Int, pa1_diff::Matrix{T}, pb1_diff::Vector{T}, pc1_diff::Vector{T},
                                       porder2_diff::Int, pa2_diff::Matrix{T}, pb2_diff::Vector{T}, pc2_diff::Vector{T}) where {T}
-    TableauSISPRK{T}(name, length(qc_drift), CoefficientsRK(name, qorder_drift, qa_drift, qb_drift, qc_drift),
-                                              CoefficientsRK(name, qorder_diff, qa_diff, qb_diff, qc_diff),
-                                              CoefficientsRK(name, porder1_drift, pa1_drift, pb1_drift, pc1_drift),
-                                              CoefficientsRK(name, porder2_drift, pa2_drift, pb2_drift, pc2_drift),
-                                              CoefficientsRK(name, porder1_diff, pa1_diff, pb1_diff, pc1_diff),
-                                              CoefficientsRK(name, porder2_diff, pa2_diff, pb2_diff, pc2_diff))
+    TableauSISPRK{T}(name, length(qc_drift), Tableau(name, qorder_drift, qa_drift, qb_drift, qc_drift),
+                                              Tableau(name, qorder_diff, qa_diff, qb_diff, qc_diff),
+                                              Tableau(name, porder1_drift, pa1_drift, pb1_drift, pc1_drift),
+                                              Tableau(name, porder2_drift, pa2_drift, pb2_drift, pc2_drift),
+                                              Tableau(name, porder1_diff, pa1_diff, pb1_diff, pc1_diff),
+                                              Tableau(name, porder2_diff, pa2_diff, pb2_diff, pc2_diff))
 end
 
 # TODO function readTableauSFIRKFromFile(dir::AbstractString, name::AbstractString)
@@ -175,7 +175,7 @@ struct IntegratorSISPRK{DT, TT, D, M, S,
     end
 
     function IntegratorSISPRK(equation::SPSDE{DT,TT}, tableau::TableauSISPRK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorSISPRK{DT, ndims(equation), equation.m}(get_function_tuple(equation), tableau, Δt; kwargs...)
+        IntegratorSISPRK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
     end
 end
 

@@ -3,34 +3,34 @@ abstract type StochasticSolution{dType, tType, wType, NQ, NW} <: Solution{dType,
 
 conv(sol::StochasticSolution) = error("conv() not implemented for ", typeof(sol))
 
-Common.nsamples(sol::StochasticSolution) = sol.ns
+GeometricBase.nsamples(sol::StochasticSolution) = sol.ns
 
 
 "Create solution for SDE."
 function Solutions.Solution(equation::SDE, Δt, ntime::Int; kwargs...)
-    SSolutionSDE(equation, Δt, ntime; kwargs...)
+    SolutionSDE(equation, Δt, ntime; kwargs...)
 end
 
 function Solutions.Solution(equation::SDE, Δt, dW, dZ, ntime::Int; kwargs...)
-    SSolutionSDE(equation, Δt, dW, dZ, ntime; kwargs...)
+    SolutionSDE(equation, Δt, dW, dZ, ntime; kwargs...)
 end
 
 "Create solution for PSDE."
 function Solutions.Solution(equation::Union{PSDE,SPSDE}, Δt, ntime::Int; kwargs...)
-    SSolutionPSDE(equation, Δt, ntime; kwargs...)
+    SolutionPSDE(equation, Δt, ntime; kwargs...)
 end
 
 function Solutions.Solution(equation::Union{PSDE,SPSDE}, Δt, dW, dZ, ntime::Int; kwargs...)
-    SSolutionPSDE(equation, Δt, dW, dZ, ntime; kwargs...)
+    SolutionPSDE(equation, Δt, dW, dZ, ntime; kwargs...)
 end
 
-"Create parallel solution for SDE."
-function Solutions.ParallelSolution(equation::SDE, Δt, ntime::Int; kwargs...)
-    PSolutionSDE(equation, Δt, ntime; kwargs...)
-end
+# "Create parallel solution for SDE."
+# function Solutions.ParallelSolution(equation::SDE, Δt, ntime::Int; kwargs...)
+#     PSolutionSDE(equation, Δt, ntime; kwargs...)
+# end
 
-"Create parallel solution for PSDE."
-function Solutions.ParallelSolution(equation::Union{PSDE,SPSDE}, Δt, ntime::Int; kwargs...)
-    PSolutionPSDE(equation, Δt, ntime; kwargs...)
-end
+# "Create parallel solution for PSDE."
+# function Solutions.ParallelSolution(equation::Union{PSDE,SPSDE}, Δt, ntime::Int; kwargs...)
+#     PSolutionPSDE(equation, Δt, ntime; kwargs...)
+# end
 

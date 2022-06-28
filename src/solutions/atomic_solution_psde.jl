@@ -11,12 +11,12 @@ Atomic solution for an SDE.
 ### Fields
 
 * `t`: time of current time step
-* `t̅`: time of previous time step
+* `t̄`: time of previous time step
 * `q`: current solution of q
-* `q̅`: previous solution of q
+* `q̄`: previous solution of q
 * `q̃`: compensated summation error of q
 * `p`: current solution of p
-* `p̅`: previous solution of p
+* `p̄`: previous solution of p
 * `p̃`: compensated summation error of p
 * `ΔW`: Wiener process driving the stochastic process q
 * `ΔZ`: Wiener process driving the stochastic process q
@@ -24,14 +24,14 @@ Atomic solution for an SDE.
 """
 mutable struct AtomicSolutionPSDE{DT <: Number, TT <: Real, AT <: AbstractArray{DT}, IT <: NamedTuple} <: AtomicSolution{DT,TT,AT}
     t::TT
-    t̅::TT
+    t̄::TT
 
     q::AT
-    q̅::AT
+    q̄::AT
     q̃::AT
 
     p::AT
-    p̅::AT
+    p̄::AT
     p̃::AT
 
     ΔW::AT
@@ -86,10 +86,10 @@ function get_increments!(asol::AtomicSolutionPSDE, ΔW, ΔZ)
     ΔZ .= asol.ΔZ
 end
 
-function Common.reset!(asol::AtomicSolutionPSDE, Δt)
-    asol.t̅  = asol.t
-    asol.q̅ .= asol.q
-    asol.p̅ .= asol.p
+function GeometricBase.reset!(asol::AtomicSolutionPSDE, Δt)
+    asol.t̄  = asol.t
+    asol.q̄ .= asol.q
+    asol.p̄ .= asol.p
     asol.t += Δt
 end
 

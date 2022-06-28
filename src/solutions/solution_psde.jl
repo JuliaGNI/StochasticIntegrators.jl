@@ -20,15 +20,16 @@ Contains all fields necessary to store the solution of a PSDE or SPSDE
 * `nsave`: save every nsave'th time step
 
 """
-abstract type SolutionPSDE{dType, tType, wType, NQ, NW, CONV} <: StochasticSolution{dType, tType, wType, NQ, NW} end
+abstract type AbstractSolutionPSDE{dType, tType, wType, NQ, NW, CONV} <: StochasticSolution{dType, tType, wType, NQ, NW} end
 
 # Create SolutionPSDEs with serial and parallel data structures.
 for (TSolution, TDataSeries, Tdocstring) in
-    ((:SSolutionPSDE, :SDataSeries, "Serial Solution of a partitioned stochastic differential equation."),
-     (:PSolutionPSDE, :PDataSeries, "Parallel Solution of a partitioned stochastic differential equation."))
+    ((:SolutionPSDE, :DataSeries, "Serial Solution of a partitioned stochastic differential equation."),
+    #  (:PSolutionPSDE, :PDataSeries, "Parallel Solution of a partitioned stochastic differential equation.")
+     )
     @eval begin
         $Tdocstring
-        mutable struct $TSolution{dType, tType, wType, NQ, NW, CONV} <: SolutionPSDE{dType, tType, wType, NQ, NW, CONV}
+        mutable struct $TSolution{dType, tType, wType, NQ, NW, CONV} <: AbstractSolutionPSDE{dType, tType, wType, NQ, NW, CONV}
             nd::Int
             nm::Int
             nt::Int
@@ -255,8 +256,8 @@ Base.:(==)(sol1::SolutionPSDE{DT1,TT1,NQ1,NW1,C1}, sol2::SolutionPSDE{DT2,TT2,NQ
 @inline ioffset(sol::SolutionPSDE) = sol.ioffset
 @inline Solutions.lastentry(sol::SolutionPSDE) = sol.ni == 1 ? sol.counter[1] - 1 : sol.counter .- 1
 @inline conv(sol::SolutionPSDE{DT,TT,NQ,NW,CONV}) where {DT,TT,NQ,NW,CONV} = CONV
-@inline Common.ntime(sol::SolutionPSDE) = sol.ntime
-@inline Common.periodicity(sol::SolutionPSDE) = sol.periodicity
+@inline GeometricBase.ntime(sol::SolutionPSDE) = sol.ntime
+@inline GeometricBase.periodicity(sol::SolutionPSDE) = sol.periodicity
 
 
 function Solutions.set_initial_conditions!(sol::SolutionPSDE, equ::Union{PSDE,SPSDE})
@@ -384,7 +385,7 @@ function get_increments!(sol::SolutionPSDE{AT,TT,WT,NQ,3}, asol::AtomicSolutionP
 end
 
 
-function Common.reset!(sol::SolutionPSDE)
+function GeometricBase.reset!(sol::SolutionPSDE)
     reset!(sol.q)
     reset!(sol.p)
     compute_timeseries!(sol.t, sol.t[end])

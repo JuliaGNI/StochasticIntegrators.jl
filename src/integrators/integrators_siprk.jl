@@ -12,10 +12,10 @@ Orders stored in qdrift and qdiff are understood as the classical orders of thes
 struct TableauSIPRK{T} <: AbstractTableauIRK{T}
     name::Symbol
     s::Int
-    qdrift::CoefficientsRK{T}
-    qdiff::CoefficientsRK{T}
-    pdrift::CoefficientsRK{T}
-    pdiff::CoefficientsRK{T}
+    qdrift::Tableau{T}
+    qdiff::Tableau{T}
+    pdrift::Tableau{T}
+    pdiff::Tableau{T}
 
     function TableauSIPRK{T}(name, s, qdrift, qdiff, pdrift, pdiff) where {T}
         @assert s == qdrift.s == qdiff.s == pdrift.s == pdiff.s
@@ -23,13 +23,13 @@ struct TableauSIPRK{T} <: AbstractTableauIRK{T}
     end
 end
 
-function TableauSIPRK(name::Symbol, qdrift::CoefficientsRK{T}, qdiff::CoefficientsRK{T}, pdrift::CoefficientsRK{T}, pdiff::CoefficientsRK{T}) where {T}
+function TableauSIPRK(name::Symbol, qdrift::Tableau{T}, qdiff::Tableau{T}, pdrift::Tableau{T}, pdiff::Tableau{T}) where {T}
     TableauSIPRK{T}(name, qdrift.s, qdrift, qdiff, pdrift, pdiff)
 end
 
 function TableauSIPRK(name::Symbol, qorder_drift::Int, qa_drift::Matrix{T}, qb_drift::Vector{T}, qc_drift::Vector{T}, qorder_diff::Int, qa_diff::Matrix{T}, qb_diff::Vector{T}, qc_diff::Vector{T},
                                     porder_drift::Int, pa_drift::Matrix{T}, pb_drift::Vector{T}, pc_drift::Vector{T}, porder_diff::Int, pa_diff::Matrix{T}, pb_diff::Vector{T}, pc_diff::Vector{T}) where {T}
-    TableauSIPRK{T}(name, length(qc_drift), CoefficientsRK(name, qorder_drift, qa_drift, qb_drift, qc_drift), CoefficientsRK(name, qorder_diff, qa_diff, qb_diff, qc_diff), CoefficientsRK(name, porder_drift, pa_drift, pb_drift, pc_drift), CoefficientsRK(name, porder_diff, pa_diff, pb_diff, pc_diff))
+    TableauSIPRK{T}(name, length(qc_drift), Tableau(name, qorder_drift, qa_drift, qb_drift, qc_drift), Tableau(name, qorder_diff, qa_diff, qb_diff, qc_diff), Tableau(name, porder_drift, pa_drift, pb_drift, pc_drift), Tableau(name, porder_diff, pa_diff, pb_diff, pc_diff))
 end
 
 # TODO function readTableauSFIRKFromFile(dir::AbstractString, name::AbstractString)
@@ -182,7 +182,7 @@ struct IntegratorSIPRK{DT, TT, D, M, S,
     end
 
     function IntegratorSIPRK(equation::PSDE{DT,TT}, tableau::TableauSIPRK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorSIPRK{DT, ndims(equation), equation.m}(get_function_tuple(equation), tableau, Δt; kwargs...)
+        IntegratorSIPRK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
     end
 end
 
@@ -216,7 +216,7 @@ function initial_guess!(int::IntegratorSIPRK{DT,TT}, sol::AtomicSolutionPSDE{DT,
     local t2::TT
     local Δt_local::TT
 
-    # Evaluating the functions v and B at t,q - same for all stages
+    # Evaluating the get_functions v and B at t,q - same for all stages
     int.params.equ[:v](int.params.t, int.params.q, int.params.p, cache.V1)
     int.params.equ[:B](int.params.t, int.params.q, int.params.p, cache.B1)
     int.params.equ[:f](int.params.t, int.params.q, int.params.p, cache.F1)

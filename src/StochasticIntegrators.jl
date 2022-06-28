@@ -6,14 +6,14 @@ module StochasticIntegrators
     using Reexport
     using SimpleSolvers
 
+    @reexport using GeometricBase
+    @reexport using GeometricBase.Config
+    @reexport using GeometricBase.Utils
+    @reexport using GeometricEquations
 
-    @reexport using GeometricIntegrators.Common
-    @reexport using GeometricIntegrators.Config
-    @reexport using GeometricIntegrators.Utils
 
-
-    import GeometricIntegrators.Equations: AbstractEquationSDE, AbstractEquationPSDE,
-                                           SDE, PSDE, SPSDE, get_function_tuple
+    import GeometricEquations: AbstractEquationSDE, AbstractEquationPSDE,
+                               SDE, PSDE, SPSDE, get_functions
 
 
     import GeometricIntegrators.Integrators
@@ -23,17 +23,15 @@ module StochasticIntegrators
 
     import GeometricIntegrators.Integrators: IntegratorCache, CacheDict, CacheType
     
-    import GeometricIntegrators.Integrators: AbstractTableauERK, AbstractTableauIRK, CoefficientsRK
-
     import GeometricIntegrators.Integrators: create_internal_stage_vector, create_internal_stage_matrix,
                                              create_internal_stage_vector_with_zero, create_nonlinear_solver
 
 
     import GeometricIntegrators.Solutions
 
-    import GeometricIntegrators.Solutions: AtomicSolution, Solution, ParallelSolution
+    import GeometricIntegrators.Solutions: AtomicSolution, Solution
     
-    import GeometricIntegrators.Solutions: TimeSeries, DataSeries, SDataSeries, PDataSeries
+    import GeometricIntegrators.Solutions: TimeSeries, DataSeries
     
     import GeometricIntegrators.Solutions: hdf5, timesteps, nsave, counter, offset, lastentry,
                                            DEFAULT_NSAVE, DEFAULT_NWRITE
@@ -41,11 +39,11 @@ module StochasticIntegrators
     import GeometricIntegrators.Solutions: get_initial_conditions, get_initial_conditions!, set_initial_conditions!,
                                            get_solution, get_solution!, set_solution!,
                                            get_data!, set_data!, update!, compute_timeseries!,
-                                           createHDF5, create_hdf5, create_hdf5!, save_attributes,
-                                           init_timeteps_in_hdf5, init_solution_in_hdf5, copy_solution_to_hdf5
+                                           save_attributes,
+                                           init_timeteps, init_solution, save_solution
 
 
-    import GeometricIntegrators.Tableaus: CoefficientsGLRK, CoefficientsLobattoIIIA, CoefficientsLobattoIIIB, CoefficientsLobattoIIID
+    import RungeKutta: Tableau, TableauGauss, TableauLobattoIIIA, TableauLobattoIIIB, TableauLobattoIIID, istrilstrict
 
 
     const DEFAULT_SCONV = :strong
@@ -62,7 +60,7 @@ module StochasticIntegrators
     include("solutions/atomic_solution_psde.jl")
 
     export Solution, StochasticSolution
-    export SolutionSDE, SSolutionSDE, PSolutionSDE, SolutionPSDE, SSolutionPSDE, PSolutionPSDE
+    export SolutionSDE, SolutionPSDE
     export hdf5, timesteps, nsave, counter, offset, lastentry
     export get_initial_conditions, get_initial_conditions!, set_initial_conditions!,
            get_solution, get_solution!, set_solution!,
