@@ -5,7 +5,6 @@ conv(sol::StochasticSolution) = error("conv() not implemented for ", typeof(sol)
 
 GeometricBase.nsamples(sol::StochasticSolution) = sol.ns
 
-
 "Create solution for SDE."
 function Solutions.Solution(equation::SDE, Δt, ntime::Int; kwargs...)
     SolutionSDE(equation, Δt, ntime; kwargs...)
@@ -16,11 +15,11 @@ function Solutions.Solution(equation::SDE, Δt, dW, dZ, ntime::Int; kwargs...)
 end
 
 "Create solution for PSDE."
-function Solutions.Solution(equation::Union{PSDE,SPSDE}, Δt, ntime::Int; kwargs...)
+function Solutions.Solution(equation::Union{PSDE, SPSDE}, Δt, ntime::Int; kwargs...)
     SolutionPSDE(equation, Δt, ntime; kwargs...)
 end
 
-function Solutions.Solution(equation::Union{PSDE,SPSDE}, Δt, dW, dZ, ntime::Int; kwargs...)
+function Solutions.Solution(equation::Union{PSDE, SPSDE}, Δt, dW, dZ, ntime::Int; kwargs...)
     SolutionPSDE(equation, Δt, dW, dZ, ntime; kwargs...)
 end
 
@@ -33,4 +32,3 @@ end
 # function Solutions.ParallelSolution(equation::Union{PSDE,SPSDE}, Δt, ntime::Int; kwargs...)
 #     PSolutionPSDE(equation, Δt, ntime; kwargs...)
 # end
-

@@ -3,71 +3,68 @@ using StochasticIntegrators
 using GeometricProblems.KuboOscillator
 using Test
 
-
 nd = 3
 ns = 5
 nt = 10
-Δt = .1
+Δt = 0.1
 dt = Float64
 
-t0    = 0.
-x0    = rand(2)
-y0    = rand(2)
-q0    = rand(1)
-p0    = rand(1)
+t0 = 0.0
+x0 = rand(2)
+y0 = rand(2)
+q0 = rand(1)
+p0 = rand(1)
 
-t1    = 1.
-x1    = rand(2, ns)
-y1    = rand(2, ns)
-q1    = rand(1, ns)
-p1    = rand(1, ns)
+t1 = 1.0
+x1 = rand(2, ns)
+y1 = rand(2, ns)
+q1 = rand(1, ns)
+p1 = rand(1, ns)
 
-t2    = t1 + (t1-t0)
-x2    = rand(2, ns)
-y2    = rand(2, ns)
-q2    = rand(1, ns)
-p2    = rand(1, ns)
+t2 = t1 + (t1-t0)
+x2 = rand(2, ns)
+y2 = rand(2, ns)
+q2 = rand(1, ns)
+p2 = rand(1, ns)
 
-tx    = zero(x0)
-ty    = zero(y0)
-tq    = zero(q0)
-tp    = zero(p0)
+tx = zero(x0)
+ty = zero(y0)
+tq = zero(q0)
+tp = zero(p0)
 
-xs    = rand(2,nt)
-ys    = rand(2,nt)
-qs    = rand(1,nt)
-ps    = rand(1,nt)
+xs = rand(2, nt)
+ys = rand(2, nt)
+qs = rand(1, nt)
+ps = rand(1, nt)
 
-Xs    = rand(2,nt,ns)
-Ys    = rand(2,nt,ns)
-Qs    = rand(1,nt,ns)
-Ps    = rand(1,nt,ns)
+Xs = rand(2, nt, ns)
+Ys = rand(2, nt, ns)
+Qs = rand(1, nt, ns)
+Ps = rand(1, nt, ns)
 
-sde  = kubo_oscillator_sde_2()
+sde = kubo_oscillator_sde_2()
 psde = kubo_oscillator_psde_2()
 
-x100  = rand(ndims(sde),  100)
-q100  = rand(ndims(psde), 100)
-p100  = rand(ndims(psde), 100)
+x100 = rand(ndims(sde), 100)
+q100 = rand(ndims(psde), 100)
+p100 = rand(ndims(psde), 100)
 
 h5file = "test.hdf5"
 
-
 @testset "$(rpad("Wiener Process",80))" begin
-
-    wp = WienerProcess(dt, 1, nt, 1,  Δt, :strong)
+    wp = WienerProcess(dt, 1, nt, 1, Δt, :strong)
     @test wp == WienerProcess(Δt, wp.ΔW[:], wp.ΔZ[:], :strong)
     @test ndims(wp) == 2
 
-    wp = WienerProcess(dt, 1, nt, 1,  Δt, :weak)
+    wp = WienerProcess(dt, 1, nt, 1, Δt, :weak)
     @test wp == WienerProcess(Δt, wp.ΔW[:], wp.ΔZ[:], :weak)
     @test ndims(wp) == 2
 
-    wp = WienerProcess(dt, nd, nt, 1,  Δt, :strong)
+    wp = WienerProcess(dt, nd, nt, 1, Δt, :strong)
     @test wp == WienerProcess(Δt, wp.ΔW, wp.ΔZ, :strong)
     @test ndims(wp) == 2
 
-    wp = WienerProcess(dt, nd, nt, 1,  Δt, :weak)
+    wp = WienerProcess(dt, nd, nt, 1, Δt, :weak)
     @test wp == WienerProcess(Δt, wp.ΔW, wp.ΔZ, :weak)
     @test ndims(wp) == 2
 
@@ -78,9 +75,7 @@ h5file = "test.hdf5"
     wp = WienerProcess(dt, nd, nt, ns, Δt, :weak)
     @test wp == WienerProcess(Δt, wp.ΔW, wp.ΔZ, :weak)
     @test ndims(wp) == 3
-
 end
-
 
 @testset "$(rpad("SDE Solution",80))" begin
     asol = AtomicSolution(sde)
@@ -107,7 +102,7 @@ end
     @test sol.ns == 3
     @test sol.nt == nt
 
-    sol  = Solution(sde, Δt, nt)
+    sol = Solution(sde, Δt, nt)
     sol0 = Solution(similar(sde, x0), Δt, nt)
     # sol1 = Solution(similar(sde, x1), Δt, nt)
     # TODO Reactivate!
@@ -146,13 +141,12 @@ end
     # end
     # TODO Reactivate!
 
-
     # test set/get solution
     sol1 = Solution(similar(kubo_oscillator_sde_3(), x0), Δt, nt)
     sol2 = Solution(similar(kubo_oscillator_sde_3(), x0), Δt, nt)
     for i in 1:nt
-        tx .= xs[:,i]
-        asol.q .= xs[:,i]
+        tx .= xs[:, i]
+        asol.q .= xs[:, i]
         set_solution!(sol1, tx, i)
         set_solution!(sol2, asol, i)
     end
@@ -226,16 +220,16 @@ end
     # TODO Reactivate!
 
     # test nsave and nwrite parameters
-    sol = Solution(sde, Δt, 20, nsave=2)
+    sol = Solution(sde, Δt, 20, nsave = 2)
     @test sol.nt == 10
 
-    sol = Solution(sde, Δt, 20, nsave=2, nwrite=10)
+    sol = Solution(sde, Δt, 20, nsave = 2, nwrite = 10)
     @test sol.nt == 5
 
     # test reset
     sol = Solution(sde, Δt, nt)
     reset!(sol)
-    @test sol.t[0]   == t1
+    @test sol.t[0] == t1
     @test sol.t[end] == t2
     @test offset(sol) == nt
 
@@ -289,7 +283,6 @@ end
     # TODO Reactivate!
 end
 
-
 @testset "$(rpad("PSDE Solution",80))" begin
     asol = AtomicSolution(psde)
 
@@ -315,7 +308,7 @@ end
     @test sol.ns == 3
     @test sol.nt == nt
 
-    sol  = Solution(psde, Δt, nt)
+    sol = Solution(psde, Δt, nt)
     sol0 = Solution(similar(psde, q0, p0), Δt, nt)
     # sol1 = Solution(similar(psde, q1, p1), Δt, nt)
     # TODO Reactivate!
@@ -362,10 +355,10 @@ end
     sol1 = Solution(similar(kubo_oscillator_psde_3(), q0, p0), Δt, nt)
     sol2 = Solution(similar(kubo_oscillator_psde_3(), q0, p0), Δt, nt)
     for i in 1:nt
-        tq .= qs[:,i]
-        tp .= ps[:,i]
-        asol.q .= qs[:,i]
-        asol.p .= ps[:,i]
+        tq .= qs[:, i]
+        tp .= ps[:, i]
+        asol.q .= qs[:, i]
+        asol.p .= ps[:, i]
         set_solution!(sol1, tq, tp, i)
         set_solution!(sol2, asol, i)
     end
@@ -447,16 +440,16 @@ end
     # TODO Reactivate!
 
     # test nsave and nwrite parameters
-    sol = Solution(psde, Δt, 20, nsave=2)
+    sol = Solution(psde, Δt, 20, nsave = 2)
     @test sol.nt == 10
 
-    sol = Solution(psde, Δt, 20, nsave=2, nwrite=10)
+    sol = Solution(psde, Δt, 20, nsave = 2, nwrite = 10)
     @test sol.nt == 5
 
     # test reset
     sol = Solution(psde, Δt, nt)
     reset!(sol)
-    @test sol.t[0]   == t1
+    @test sol.t[0] == t1
     @test sol.t[end] == t2
     @test offset(sol) == nt
 
@@ -514,9 +507,7 @@ end
     # TODO Reactivate!
 end
 
-
 @testset "$(rpad("SPSDE Solution",80))" begin
-
     sol = Solution(kubo_oscillator_spsde_1(), Δt, nt)
     @test typeof(sol) <: SolutionPSDE
     @test sol.nd == 1
@@ -537,5 +528,4 @@ end
     @test sol.nm == 1
     @test sol.ns == 3
     @test sol.nt == nt
-
 end

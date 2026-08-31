@@ -22,7 +22,9 @@ Atomic solution for an SDE.
 * `ΔZ`: Wiener process driving the stochastic process q
 * `K`:  integer parameter defining the truncation of the increments of the Wiener process (for strong solutions)
 """
-mutable struct AtomicSolutionPSDE{DT <: Number, TT <: Real, AT <: AbstractArray{DT}, IT <: NamedTuple} <: AtomicSolution{DT,TT,AT}
+mutable struct AtomicSolutionPSDE{
+    DT <: Number, TT <: Real, AT <: AbstractArray{DT}, IT <: NamedTuple} <:
+               AtomicSolution{DT, TT, AT}
     t::TT
     t̄::TT
 
@@ -41,14 +43,15 @@ mutable struct AtomicSolutionPSDE{DT <: Number, TT <: Real, AT <: AbstractArray{
 
     internal::IT
 
-    function AtomicSolutionPSDE{DT,TT,AT,IT}(nd, nm, internal::IT) where {DT,TT,AT,IT}
+    function AtomicSolutionPSDE{DT, TT, AT, IT}(nd, nm, internal::IT) where {DT, TT, AT, IT}
         new(zero(TT), zero(TT),
             AT(zeros(DT, nd)), AT(zeros(DT, nd)), AT(zeros(DT, nd)),
             AT(zeros(DT, nd)), AT(zeros(DT, nd)), AT(zeros(DT, nd)),
             AT(zeros(DT, nm)), AT(zeros(DT, nm)), 0, internal)
     end
 
-    function AtomicSolutionPSDE{DT,TT,AT,IT}(t::TT, q::AT, p::AT, ΔW::AT, ΔZ::AT, internal::IT) where {DT,TT,AT,IT}
+    function AtomicSolutionPSDE{DT, TT, AT, IT}(
+            t::TT, q::AT, p::AT, ΔW::AT, ΔZ::AT, internal::IT) where {DT, TT, AT, IT}
         new(zero(t), zero(t),
             zero(q), zero(q), zero(q),
             zero(p), zero(p), zero(p),
@@ -57,12 +60,18 @@ mutable struct AtomicSolutionPSDE{DT <: Number, TT <: Real, AT <: AbstractArray{
     end
 end
 
-AtomicSolutionPSDE(::Type{DT}, ::Type{TT}, ::Type{AT}, nd, nm, internal::IT=NamedTuple()) where {DT,TT,AT,IT} = AtomicSolutionPSDE{DT,TT,AT,IT}(nd, nm, internal)
-AtomicSolutionPSDE(t::TT, q::AT, p::AT, ΔW::AT, ΔZ::AT, internal::IT=NamedTuple()) where {DT, TT, AT <: AbstractArray{DT}, IT} = AtomicSolutionPSDE{DT,TT,AT,IT}(t, q, p, ΔW, ΔZ, internal)
+function AtomicSolutionPSDE(::Type{DT}, ::Type{TT}, ::Type{AT}, nd, nm,
+        internal::IT = NamedTuple()) where {DT, TT, AT, IT}
+    AtomicSolutionPSDE{DT, TT, AT, IT}(nd, nm, internal)
+end
+function AtomicSolutionPSDE(t::TT, q::AT, p::AT, ΔW::AT, ΔZ::AT,
+        internal::IT = NamedTuple()) where {DT, TT, AT <: AbstractArray{DT}, IT}
+    AtomicSolutionPSDE{DT, TT, AT, IT}(t, q, p, ΔW, ΔZ, internal)
+end
 
 function Solutions.set_solution!(asol::AtomicSolutionPSDE, sol)
     t, q, p = sol
-    asol.t  = t
+    asol.t = t
     asol.q .= q
     asol.p .= p
 end
@@ -87,19 +96,20 @@ function get_increments!(asol::AtomicSolutionPSDE, ΔW, ΔZ)
 end
 
 function GeometricBase.reset!(asol::AtomicSolutionPSDE, Δt)
-    asol.t̄  = asol.t
+    asol.t̄ = asol.t
     asol.q̄ .= asol.q
     asol.p̄ .= asol.p
     asol.t += Δt
 end
 
 function Solutions.update!(asol::AtomicSolutionPSDE{DT}, y::Vector{DT}, z::Vector{DT}) where {DT}
-    for k in eachindex(y,z)
+    for k in eachindex(y, z)
         update!(asol, y[k], z[k], k)
     end
 end
 
-function Solutions.update!(asol::AtomicSolutionPSDE{DT}, y::DT, z::DT, k::Union{Int,CartesianIndex}) where {DT}
+function Solutions.update!(asol::AtomicSolutionPSDE{DT}, y::DT, z::DT, k::Union{
+        Int, CartesianIndex}) where {DT}
     asol.q[k], asol.q̃[k] = compensated_summation(y, asol.q[k], asol.q̃[k])
     asol.p[k], asol.p̃[k] = compensated_summation(z, asol.p[k], asol.p̃[k])
 end

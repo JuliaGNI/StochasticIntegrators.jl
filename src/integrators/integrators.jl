@@ -33,12 +33,13 @@ function Integrators.Integrator(equation::SDE, tableau::TableauWIRK, Δt; kwargs
     IntegratorWIRK(equation, tableau, Δt; kwargs...)
 end
 
-
 #*****************************************************************************#
 # Integration get_functions for stochastic integrators                            #
 #*****************************************************************************#
 
-function Integrators.integrate!(int::StochasticIntegrator{DT,TT}, sol::Solution{AT,TT}, asol::AtomicSolution{DT,TT}, m::Int, n::Int) where {DT, TT, AT <: AbstractArray{DT}}
+function Integrators.integrate!(int::StochasticIntegrator{DT, TT}, sol::Solution{AT, TT},
+        asol::AtomicSolution{DT, TT}, m::Int,
+        n::Int) where {DT, TT, AT <: AbstractArray{DT}}
     # copy the increments of the Brownian Process
     get_increments!(sol, asol, n, m)
 

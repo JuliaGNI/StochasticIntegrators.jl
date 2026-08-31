@@ -13,7 +13,7 @@ end
 
 function update_params!(int::IntegratorSIRK, sol::AtomicSolutionSDE)
     # set time for nonlinear solver and copy previous solution
-    int.params.t  = sol.t
+    int.params.t = sol.t
     int.params.q .= sol.q
     int.params.ΔW .= sol.ΔW
     int.params.ΔZ .= sol.ΔZ
@@ -22,9 +22,9 @@ function update_params!(int::IntegratorSIRK, sol::AtomicSolutionSDE)
     truncate_increments!(int.params.ΔW, int.params.A)
 end
 
-function update_params!(int::Union{IntegratorSIPRK,IntegratorSISPRK}, sol::AtomicSolutionPSDE)
+function update_params!(int::Union{IntegratorSIPRK, IntegratorSISPRK}, sol::AtomicSolutionPSDE)
     # set time for nonlinear solver and copy previous solution
-    int.params.t  = sol.t
+    int.params.t = sol.t
     int.params.q .= sol.q
     int.params.p .= sol.p
     int.params.ΔW .= sol.ΔW
@@ -36,12 +36,11 @@ end
 
 function update_params!(int::IntegratorWIRK, sol::AtomicSolutionSDE)
     # set time for nonlinear solver and copy previous solution
-    int.params.t  = sol.t
+    int.params.t = sol.t
     int.params.q .= sol.q
     int.params.ΔW .= sol.ΔW
     int.params.ΔZ .= sol.ΔZ
 end
-
 
 @doc raw"""
 Update solution for stochastic Runge-Kutta methods (SIRK and WIRK)
@@ -54,14 +53,14 @@ Update solution for stochastic Runge-Kutta methods (SIRK and WIRK)
 - `Δt`: the time step
 - `ΔW`: the increments of the Brownian motion (SFIRK) or the increments represented by the random variables Î^(k) (WFIRK)
 """
-function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}}, B::Vector{Matrix{T}},
-                            bdrift::Vector{T}, bdiff::Vector{T}, Δt::T, ΔW::Vector{T}, Δy::Vector{T}=zero(ΔW)) where {T}
-
+function update_solution!(
+        sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}}, B::Vector{Matrix{T}},
+        bdrift::Vector{T}, bdiff::Vector{T}, Δt::T, ΔW::Vector{T}, Δy::Vector{T} = zero(ΔW)) where {T}
     @assert length(bdrift) == length(bdiff) == length(V) == length(B)
 
     for i in eachindex(V, B)
         @assert length(sol.q) == length(V[i]) == size(B[i], 1)
-        @assert length(ΔW)== size(B[i], 2)
+        @assert length(ΔW) == size(B[i], 2)
     end
 
     local Δx::T
@@ -80,13 +79,12 @@ function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}}, B::Ve
         Δy .= 0
         for i in eachindex(bdiff, B)
             for l in eachindex(Δy)
-                Δy[l] += bdiff[i] * B[i][k,l]
+                Δy[l] += bdiff[i] * B[i][k, l]
             end
         end
-        update!(sol, dot(Δy,ΔW), k)
+        update!(sol, dot(Δy, ΔW), k)
     end
 end
-
 
 @doc raw"""
 Update solution for stochastic Runge-Kutta methods (SERK)
@@ -101,14 +99,14 @@ Update solution for stochastic Runge-Kutta methods (SERK)
 - `ΔW`: the increments of the Brownian motion
 - `ΔZ`: the integrals of the increments of the Brownian motion
 """
-function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}}, B::Vector{Matrix{T}},
-                            bdrift::Vector{T}, bdiff::Vector{T}, bdiff2::Vector{T},
-                            Δt::T, ΔW::Vector{T}, ΔZ::Vector{T}, Δy::Vector{T}=zero(ΔW)) where {T}
-
+function update_solution!(
+        sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}}, B::Vector{Matrix{T}},
+        bdrift::Vector{T}, bdiff::Vector{T}, bdiff2::Vector{T},
+        Δt::T, ΔW::Vector{T}, ΔZ::Vector{T}, Δy::Vector{T} = zero(ΔW)) where {T}
     @assert length(bdiff2) == length(B)
 
     for i in eachindex(B)
-        @assert length(ΔZ)== size(B[i], 2)
+        @assert length(ΔZ) == size(B[i], 2)
     end
 
     # Contributions from the drift and diffusion parts
@@ -119,13 +117,12 @@ function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}}, B::Ve
         Δy .= 0
         for i in eachindex(bdiff2, B)
             for l in eachindex(Δy)
-                Δy[l] += bdiff2[i] * B[i][k,l]
+                Δy[l] += bdiff2[i] * B[i][k, l]
             end
         end
-        update!(sol, dot(Δy,ΔZ)/Δt, k)
+        update!(sol, dot(Δy, ΔZ)/Δt, k)
     end
 end
-
 
 @doc raw"""
 Update solution for stochastic partitioned Runge-Kutta methods
@@ -139,16 +136,17 @@ Update solution for stochastic partitioned Runge-Kutta methods
 - `ΔW`: the increments of the Brownian motion
 """
 function update_solution!(sol::AtomicSolutionPSDE{T},
-                          V::Vector{Vector{T}}, F::Vector{Vector{T}},
-                          B::Vector{Matrix{T}}, G::Vector{Matrix{T}},
-                          bqdrift::Vector{T}, bqdiff::Vector{T},
-                          bpdrift::Vector{T}, bpdiff::Vector{T},
-                          Δt::T, ΔW::Vector{T}, Δy::Vector{T}=zero(ΔW), Δz::Vector{T}=zero(ΔW)) where {T}
-
-    @assert length(bqdrift) == length(bqdiff) == length(bpdrift) == length(bpdiff) == length(V) == length(F) == length(B) == length(G)
+        V::Vector{Vector{T}}, F::Vector{Vector{T}},
+        B::Vector{Matrix{T}}, G::Vector{Matrix{T}},
+        bqdrift::Vector{T}, bqdiff::Vector{T},
+        bpdrift::Vector{T}, bpdiff::Vector{T},
+        Δt::T, ΔW::Vector{T}, Δy::Vector{T} = zero(ΔW), Δz::Vector{T} = zero(ΔW)) where {T}
+    @assert length(bqdrift) == length(bqdiff) == length(bpdrift) == length(bpdiff) ==
+            length(V) == length(F) == length(B) == length(G)
 
     for i in eachindex(V, F, B, G)
-        @assert length(sol.q) == length(sol.p) == length(V[i]) == length(F[i]) == size(B[i], 1) == size(G[i], 1)
+        @assert length(sol.q) == length(sol.p) == length(V[i]) == length(F[i]) ==
+                size(B[i], 1) == size(G[i], 1)
         @assert length(ΔW) == size(B[i], 2) == size(G[i], 2)
     end
 
@@ -172,14 +170,13 @@ function update_solution!(sol::AtomicSolutionPSDE{T},
         Δz .= 0
         for i in eachindex(bqdiff, bpdiff, B, G)
             for l in eachindex(Δy, Δz)
-                Δy[l] += bqdiff[i] * B[i][k,l]
-                Δz[l] += bpdiff[i] * G[i][k,l]
+                Δy[l] += bqdiff[i] * B[i][k, l]
+                Δz[l] += bpdiff[i] * G[i][k, l]
             end
         end
-        update!(sol, dot(Δy,ΔW), dot(Δz,ΔW), k)
+        update!(sol, dot(Δy, ΔW), dot(Δz, ΔW), k)
     end
 end
-
 
 @doc raw"""
 Update solution for stochastic split partitioned Runge-Kutta methods
@@ -193,48 +190,49 @@ Update solution for stochastic split partitioned Runge-Kutta methods
 - `ΔW`: the increments of the Brownian motion
 """
 function update_solution!(sol::AtomicSolutionPSDE{T},
-                            V::Vector{Vector{T}}, F1::Vector{Vector{T}}, F2::Vector{Vector{T}},
-                            B::Vector{Matrix{T}}, G1::Vector{Matrix{T}}, G2::Vector{Matrix{T}},
-                            bqdrift::Vector{T}, bqdiff::Vector{T},
-                            bpdrift1::Vector{T}, bpdrift2::Vector{T},
-                            bpdiff1::Vector{T}, bpdiff2::Vector{T},
-                            Δt::T, ΔW::Vector{T}, Δy::Vector{T}=zero(ΔW), Δz::Vector{T}=zero(ΔW)) where {T}
+        V::Vector{Vector{T}}, F1::Vector{Vector{T}}, F2::Vector{Vector{T}},
+        B::Vector{Matrix{T}}, G1::Vector{Matrix{T}}, G2::Vector{Matrix{T}},
+        bqdrift::Vector{T}, bqdiff::Vector{T},
+        bpdrift1::Vector{T}, bpdrift2::Vector{T},
+        bpdiff1::Vector{T}, bpdiff2::Vector{T},
+        Δt::T, ΔW::Vector{T}, Δy::Vector{T} = zero(ΔW), Δz::Vector{T} = zero(ΔW)) where {T}
+    @assert length(bqdrift) == length(bqdiff) == length(bpdrift1) == length(bpdrift2) ==
+            length(bpdiff1) == length(bpdiff2) == length(V) == length(F1) == length(F2) ==
+            length(B) == length(G1) == length(G2)
 
-   @assert length(bqdrift) == length(bqdiff) == length(bpdrift1) == length(bpdrift2) == length(bpdiff1) == length(bpdiff2) == length(V) == length(F1) == length(F2) == length(B) == length(G1) == length(G2)
+    for i in eachindex(V, F1, F2, B, G1, G2)
+        @assert length(sol.q) == length(sol.p) == length(V[i]) == length(F1[i]) ==
+                length(F2[i]) == size(B[i], 1) == size(G1[i], 1) == size(G2[i], 1)
+        @assert length(ΔW) == size(B[i], 2) == size(G1[i], 2) == size(G2[i], 2)
+    end
 
-   for i in eachindex(V, F1, F2, B, G1, G2)
-       @assert length(sol.q) == length(sol.p) == length(V[i]) == length(F1[i]) == length(F2[i]) == size(B[i], 1) == size(G1[i], 1) == size(G2[i], 1)
-       @assert length(ΔW) == size(B[i], 2) == size(G1[i], 2) == size(G2[i], 2)
-   end
+    local Δq::T
+    local Δp::T
 
-   local Δq::T
-   local Δp::T
+    # Contribution from the drift part
+    for k in eachindex(sol.q, sol.p)
+        Δq = 0
+        Δp = 0
+        for i in eachindex(bqdrift, bpdrift1, bpdrift2, V, F1, F2)
+            Δq += bqdrift[i] * V[i][k]
+            Δp += bpdrift1[i] * F1[i][k] + bpdrift2[i] * F2[i][k]
+        end
+        update!(sol, Δt*Δq, Δt*Δp, k)
+    end
 
-   # Contribution from the drift part
-   for k in eachindex(sol.q, sol.p)
-       Δq = 0
-       Δp = 0
-       for i in eachindex(bqdrift, bpdrift1, bpdrift2, V, F1, F2)
-           Δq += bqdrift[i] * V[i][k]
-           Δp += bpdrift1[i] * F1[i][k] + bpdrift2[i] * F2[i][k]
-       end
-       update!(sol, Δt*Δq, Δt*Δp, k)
-   end
-
-   # Contribution from the diffusion part
-   for k in eachindex(sol.q, sol.p)
-       Δy .= 0
-       Δz .= 0
-       for i in eachindex(bqdiff, bpdiff1, bpdiff2, B, G1, G2)
-           for l in eachindex(Δy,Δz)
-               Δy[l] += bqdiff[i]  * B[i][k,l]
-               Δz[l] += bpdiff1[i] * G1[i][k,l] + bpdiff2[i] * G2[i][k,l]
-           end
-       end
-       update!(sol, dot(Δy,ΔW), dot(Δz,ΔW), k)
-   end
+    # Contribution from the diffusion part
+    for k in eachindex(sol.q, sol.p)
+        Δy .= 0
+        Δz .= 0
+        for i in eachindex(bqdiff, bpdiff1, bpdiff2, B, G1, G2)
+            for l in eachindex(Δy, Δz)
+                Δy[l] += bqdiff[i] * B[i][k, l]
+                Δz[l] += bpdiff1[i] * G1[i][k, l] + bpdiff2[i] * G2[i][k, l]
+            end
+        end
+        update!(sol, dot(Δy, ΔW), dot(Δz, ΔW), k)
+    end
 end
-
 
 @doc raw"""
 Update solution for weak Runge-Kutta methods WERK
@@ -250,13 +248,13 @@ Update solution for weak Runge-Kutta methods WERK
 - `ΔW`: the increments of the Brownian motion represented by the random variables Î^(k)
 """
 function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}},
-                            B1::Vector{Matrix{T}}, B2::Vector{Matrix{T}}, α::Vector{T},
-                            β1::Vector{T}, β2::Vector{T}, Δt::T, ΔW::Vector{T}, Δy::Vector{T}=zero(ΔW)) where {T}
+        B1::Vector{Matrix{T}}, B2::Vector{Matrix{T}}, α::Vector{T},
+        β1::Vector{T}, β2::Vector{T}, Δt::T, ΔW::Vector{T}, Δy::Vector{T} = zero(ΔW)) where {T}
     @assert length(α) == length(β1) == length(β2) == length(V) == length(B1) == length(B2)
 
     for i in eachindex(V, B1, B2)
         @assert length(sol.q) == length(V[i]) == size(B1[i], 1) == size(B2[i], 1)
-        @assert length(ΔW)== size(B1[i], 2) == size(B2[i], 2)
+        @assert length(ΔW) == size(B1[i], 2) == size(B2[i], 2)
     end
 
     local Δx::T
@@ -275,10 +273,10 @@ function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}},
         Δy .= 0
         for i in eachindex(β1, B1)
             for l in eachindex(Δy)
-                Δy[l] += β1[i] * B1[i][k,l]
+                Δy[l] += β1[i] * B1[i][k, l]
             end
         end
-        update!(sol, dot(Δy,ΔW), k)
+        update!(sol, dot(Δy, ΔW), k)
     end
 
     # Contribution from the second diffusion term
@@ -286,7 +284,7 @@ function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}},
         Δx = 0
         for i in eachindex(β2, B2)
             for l in axes(B2[i], 2)
-                Δx += β2[i] * B2[i][k,l]
+                Δx += β2[i] * B2[i][k, l]
             end
         end
         update!(sol, sqrt(Δt)*Δx, k)

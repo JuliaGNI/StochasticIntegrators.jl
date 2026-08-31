@@ -1,133 +1,130 @@
 module StochasticIntegrators
 
-    using HDF5
-    using LinearAlgebra: dot, mul!
-    using OffsetArrays
-    using Reexport
-    using SimpleSolvers
+using HDF5
+using LinearAlgebra: dot, mul!
+using OffsetArrays
+using Reexport
+using SimpleSolvers
 
-    @reexport using GeometricBase
-    @reexport using GeometricBase.Config
-    @reexport using GeometricBase.Utils
-    @reexport using GeometricEquations
+@reexport using GeometricBase
+@reexport using GeometricBase.Config
+@reexport using GeometricBase.Utils
+@reexport using GeometricEquations
 
+import GeometricEquations: AbstractEquationSDE, AbstractEquationPSDE,
+                           SDE, PSDE, SPSDE, get_functions
 
-    import GeometricEquations: AbstractEquationSDE, AbstractEquationPSDE,
-                               SDE, PSDE, SPSDE, get_functions
+import GeometricIntegrators.Integrators
+import GeometricIntegrators.Integrators: Integrator, Parameters
 
+import GeometricIntegrators.Integrators: integrate!, integrate_common!,
+                                         get_internal_variables
 
-    import GeometricIntegrators.Integrators
-    import GeometricIntegrators.Integrators: Integrator, Parameters
-    
-    import GeometricIntegrators.Integrators: integrate!, integrate_common!, get_internal_variables
+import GeometricIntegrators.Integrators: IntegratorCache, CacheDict, CacheType
 
-    import GeometricIntegrators.Integrators: IntegratorCache, CacheDict, CacheType
-    
-    import GeometricIntegrators.Integrators: create_internal_stage_vector, create_internal_stage_matrix,
-                                             create_internal_stage_vector_with_zero, create_nonlinear_solver
+import GeometricIntegrators.Integrators: create_internal_stage_vector,
+                                         create_internal_stage_matrix,
+                                         create_internal_stage_vector_with_zero,
+                                         create_nonlinear_solver
 
+import GeometricIntegrators.Solutions
 
-    import GeometricIntegrators.Solutions
+import GeometricIntegrators.Solutions: AtomicSolution, Solution
 
-    import GeometricIntegrators.Solutions: AtomicSolution, Solution
-    
-    import GeometricIntegrators.Solutions: TimeSeries, DataSeries
-    
-    import GeometricIntegrators.Solutions: hdf5, timesteps, nsave, counter, offset, lastentry,
-                                           DEFAULT_NSAVE, DEFAULT_NWRITE
+import GeometricIntegrators.Solutions: TimeSeries, DataSeries
 
-    import GeometricIntegrators.Solutions: get_initial_conditions, get_initial_conditions!, set_initial_conditions!,
-                                           get_solution, get_solution!, set_solution!,
-                                           get_data!, set_data!, update!, compute_timeseries!,
-                                           save_attributes,
-                                           init_timeteps, init_solution, save_solution
+import GeometricIntegrators.Solutions: hdf5, timesteps, nsave, counter, offset, lastentry,
+                                       DEFAULT_NSAVE, DEFAULT_NWRITE
 
+import GeometricIntegrators.Solutions: get_initial_conditions, get_initial_conditions!,
+                                       set_initial_conditions!,
+                                       get_solution, get_solution!, set_solution!,
+                                       get_data!, set_data!, update!, compute_timeseries!,
+                                       save_attributes,
+                                       init_timeteps, init_solution, save_solution
 
-    import RungeKutta: Tableau, TableauGauss, TableauLobattoIIIA, TableauLobattoIIIB, TableauLobattoIIID, istrilstrict
+import RungeKutta: Tableau, TableauGauss, TableauLobattoIIIA, TableauLobattoIIIB,
+                   TableauLobattoIIID, istrilstrict
 
+const DEFAULT_SCONV = :strong
 
-    const DEFAULT_SCONV = :strong
-    
-    export SemiMartingale, WienerProcess, generate_wienerprocess!, conv
+export SemiMartingale, WienerProcess, generate_wienerprocess!, conv
 
-    include("solutions/wienerprocess.jl")
+include("solutions/wienerprocess.jl")
 
-    export AtomicSolution, AtomicSolutionSDE, AtomicSolutionPSDE
-    export update!, cut_periodic_solution!,
-           get_increments, get_increments!, set_increments!
+export AtomicSolution, AtomicSolutionSDE, AtomicSolutionPSDE
+export update!, cut_periodic_solution!,
+       get_increments, get_increments!, set_increments!
 
-    include("solutions/atomic_solution_sde.jl")
-    include("solutions/atomic_solution_psde.jl")
+include("solutions/atomic_solution_sde.jl")
+include("solutions/atomic_solution_psde.jl")
 
-    export Solution, StochasticSolution
-    export SolutionSDE, SolutionPSDE
-    export hdf5, timesteps, nsave, counter, offset, lastentry
-    export get_initial_conditions, get_initial_conditions!, set_initial_conditions!,
-           get_solution, get_solution!, set_solution!,
-           create_hdf5, create_hdf5!
+export Solution, StochasticSolution
+export SolutionSDE, SolutionPSDE
+export hdf5, timesteps, nsave, counter, offset, lastentry
+export get_initial_conditions, get_initial_conditions!, set_initial_conditions!,
+       get_solution, get_solution!, set_solution!,
+       create_hdf5, create_hdf5!
 
+include("solutions/solution.jl")
+include("solutions/solution_sde.jl")
+include("solutions/solution_psde.jl")
+include("solutions/solution_hdf5.jl")
 
-    include("solutions/solution.jl")
-    include("solutions/solution_sde.jl")
-    include("solutions/solution_psde.jl")
-    include("solutions/solution_hdf5.jl")
+include("solutions/atomic_solution_constructors.jl")
 
-    include("solutions/atomic_solution_constructors.jl")
-    
+export Parameters
 
-    export Parameters
+export Integrator, StochasticIntegrator
+export SDEIntegrator, PSDEIntegrator,
+       StochasticIntegratorRK, StochasticIntegratorPRK
 
-    export Integrator, StochasticIntegrator
-    export SDEIntegrator, PSDEIntegrator,
-           StochasticIntegratorRK, StochasticIntegratorPRK
-    
-    export nstages, noisedims, integrate!
+export nstages, noisedims, integrate!
 
-    export IntegratorSERK, TableauSERK
-    export IntegratorSIRK, TableauSIRK
-    export IntegratorSIPRK, TableauSIPRK
-    export IntegratorSISPRK, TableauSISPRK
-    export IntegratorWERK, TableauWERK
-    export IntegratorWIRK, TableauWIRK
+export IntegratorSERK, TableauSERK
+export IntegratorSIRK, TableauSIRK
+export IntegratorSIPRK, TableauSIPRK
+export IntegratorSISPRK, TableauSISPRK
+export IntegratorWERK, TableauWERK
+export IntegratorWIRK, TableauWIRK
 
-    include("integrators/abstract_integrators.jl")
-    include("integrators/abstract_runge_kutta.jl")
-    include("integrators/integrator_cache.jl")
+include("integrators/abstract_integrators.jl")
+include("integrators/abstract_runge_kutta.jl")
+include("integrators/integrator_cache.jl")
 
-    include("integrators/integrators_serk.jl")
-    include("integrators/integrators_sirk.jl")
-    include("integrators/integrators_siprk.jl")
-    include("integrators/integrators_sisprk.jl")
-    include("integrators/integrators_werk.jl")
-    include("integrators/integrators_wirk.jl")
-    include("integrators/common.jl")
-    include("integrators/integrators.jl")
+include("integrators/integrators_serk.jl")
+include("integrators/integrators_sirk.jl")
+include("integrators/integrators_siprk.jl")
+include("integrators/integrators_sisprk.jl")
+include("integrators/integrators_werk.jl")
+include("integrators/integrators_wirk.jl")
+include("integrators/common.jl")
+include("integrators/integrators.jl")
 
+include("tableaus/tableaus_sirk.jl")
 
-    include("tableaus/tableaus_sirk.jl")
+export TableauStochasticGLRK, TableauStochasticDIRK
 
-    export TableauStochasticGLRK, TableauStochasticDIRK
+include("tableaus/tableaus_siprk.jl")
 
-    include("tableaus/tableaus_siprk.jl")
+export TableauStochasticStoermerVerlet, TableauStochasticSymplecticEuler
 
-    export TableauStochasticStoermerVerlet, TableauStochasticSymplecticEuler
-    
-    include("tableaus/tableaus_sisprk.jl")
+include("tableaus/tableaus_sisprk.jl")
 
-    export TableauStochasticLobattoIIIABD2, TableauModifiedStochasticStoermerVerlet
+export TableauStochasticLobattoIIIABD2, TableauModifiedStochasticStoermerVerlet
 
-    include("tableaus/tableaus_serk.jl")
+include("tableaus/tableaus_serk.jl")
 
-    export TableauPlaten, TableauBurrageR2, TableauBurrageCL
-    export TableauBurrageE1, TableauBurrageG5, TableauStochasticHeun
-    export TableauStochasticEuler
+export TableauPlaten, TableauBurrageR2, TableauBurrageCL
+export TableauBurrageE1, TableauBurrageG5, TableauStochasticHeun
+export TableauStochasticEuler
 
-    include("tableaus/tableaus_werk.jl")
+include("tableaus/tableaus_werk.jl")
 
-    export TableauRoesslerRS1, TableauRoesslerRS2
+export TableauRoesslerRS1, TableauRoesslerRS2
 
-    include("tableaus/tableaus_wirk.jl")
+include("tableaus/tableaus_wirk.jl")
 
-    export TableauSRKw1, TableauSRKw2
-    
+export TableauSRKw1, TableauSRKw2
+
 end
