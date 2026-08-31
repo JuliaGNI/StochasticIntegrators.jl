@@ -149,7 +149,7 @@ struct IntegratorSIRK{DT, TT, D, M, S,
     end
 
     function IntegratorSIRK(equation::SDE{DT,TT}, tableau::TableauSIRK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorSIRK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
+        IntegratorSIRK{DT, ndims(equation), equation.m}(functions(equation), tableau, Δt; kwargs...)
     end
 end
 
@@ -176,12 +176,12 @@ When calling this function, int.params should contain the data:
 `int.params.t`  - the time of the previous step
 `int.params.ΔW` - the increment of the Brownian motion for the current step
 """
-function initial_guess!(int::IntegratorSIRK{DT,TT}, sol::AtomicSolutionSDE{DT,TT},
+function initial_guess!(int::IntegratorSIRK{DT,TT}, sol::SolutionStepSDE{DT,TT},
                         cache::IntegratorCacheSIRK{DT}=int.caches[DT]) where {DT,TT}
     local t2::TT
     local Δt_local::TT
 
-    # Evaluating the get_functions v and B at t,q - same for all stages
+    # Evaluating the functions v and B at t,q - same for all stages
     int.params.equ[:v](int.params.t, int.params.q, cache.V1)
     int.params.equ[:B](int.params.t, int.params.q, cache.B1)
 
@@ -278,7 +278,7 @@ end
 
 
 "Integrate SDE with a stochastic implicit Runge-Kutta integrator."
-function Integrators.integrate_step!(int::IntegratorSIRK{DT,TT}, sol::AtomicSolutionSDE{DT,TT},
+function Integrators.integrate_step!(int::IntegratorSIRK{DT,TT}, sol::SolutionStepSDE{DT,TT},
                                      cache::IntegratorCacheSIRK{DT}=int.caches[DT]) where {DT,TT}
     # update nonlinear solver parameters from cache
     update_params!(int, sol)

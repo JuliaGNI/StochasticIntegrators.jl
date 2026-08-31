@@ -1,6 +1,6 @@
 
 #*****************************************************************************#
-# Initialization get_functions for stochastic integrators                         #
+# Initialization functions for stochastic integrators                         #
 #*****************************************************************************#
 
 "Create integrator for stochastic explicit Runge-Kutta tableau."
@@ -35,10 +35,10 @@ end
 
 
 #*****************************************************************************#
-# Integration get_functions for stochastic integrators                            #
+# Integration functions for stochastic integrators                            #
 #*****************************************************************************#
 
-function Integrators.integrate!(int::StochasticIntegrator{DT,TT}, sol::Solution{AT,TT}, asol::AtomicSolution{DT,TT}, m::Int, n::Int) where {DT, TT, AT <: AbstractArray{DT}}
+function Integrators.integrate!(int::StochasticIntegrator{DT,TT}, sol::Solution{AT,TT}, asol::SolutionStep{DT,TT}, m::Int, n::Int) where {DT, TT, AT <: AbstractArray{DT}}
     # copy the increments of the Brownian Process
     get_increments!(sol, asol, n, m)
 

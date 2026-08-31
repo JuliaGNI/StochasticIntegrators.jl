@@ -144,7 +144,7 @@ struct IntegratorWIRK{DT, TT, D, M, S,
     end
 
     function IntegratorWIRK(equation::SDE{DT,TT}, tableau::TableauWIRK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorWIRK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
+        IntegratorWIRK{DT, ndims(equation), equation.m}(functions(equation), tableau, Δt; kwargs...)
     end
 end
 
@@ -160,7 +160,7 @@ will produce anything close to the desired solution...
 
 The simplest initial guess for `Y` is 0.
 """
-function initial_guess!(int::IntegratorWIRK{DT,TT}, sol::AtomicSolutionSDE{DT,TT},
+function initial_guess!(int::IntegratorWIRK{DT,TT}, sol::SolutionStepSDE{DT,TT},
                         cache::IntegratorCacheWIRK{DT}=int.caches[DT]) where {DT,TT}
     int.solver.x .= 0
 end
@@ -281,7 +281,7 @@ end
 """
 Integrate SDE with a stochastic implicit Runge-Kutta integrator.
 """
-function Integrators.integrate_step!(int::IntegratorWIRK{DT,TT}, sol::AtomicSolutionSDE{DT,TT},
+function Integrators.integrate_step!(int::IntegratorWIRK{DT,TT}, sol::SolutionStepSDE{DT,TT},
                                      cache::IntegratorCacheWIRK{DT}=int.caches[DT]) where {DT,TT}
     # update nonlinear solver parameters from cache
     update_params!(int, sol)

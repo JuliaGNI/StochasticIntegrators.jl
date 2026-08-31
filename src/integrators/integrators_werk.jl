@@ -137,13 +137,13 @@ struct IntegratorWERK{DT, TT, D, M, S, ET} <: StochasticIntegratorRK{DT,TT,D,M,S
     end
 
     function IntegratorWERK(equation::SDE{DT,TT}, tableau::TableauWERK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorWERK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
+        IntegratorWERK{DT, ndims(equation), equation.m}(functions(equation), tableau, Δt; kwargs...)
     end
 end
 
 
 "Integrate SDE with explicit Runge-Kutta integrator."
-function Integrators.integrate_step!(int::IntegratorWERK{DT,TT}, sol::AtomicSolutionSDE{DT,TT},
+function Integrators.integrate_step!(int::IntegratorWERK{DT,TT}, sol::SolutionStepSDE{DT,TT},
                                      cache::IntegratorCacheWERK{DT}=int.caches[DT]) where {DT,TT}
     local tᵢ::TT
     local ydrift::DT

@@ -175,7 +175,7 @@ struct IntegratorSISPRK{DT, TT, D, M, S,
     end
 
     function IntegratorSISPRK(equation::SPSDE{DT,TT}, tableau::TableauSISPRK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorSISPRK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
+        IntegratorSISPRK{DT, ndims(equation), equation.m}(functions(equation), tableau, Δt; kwargs...)
     end
 end
 
@@ -188,7 +188,7 @@ For SISPRK we are NOT IMPLEMENTING an InitialGuess.
 SIMPLE SOLUTION
 The simplest initial guess for `Y`, `Z` is 0.
 """
-function initial_guess!(int::IntegratorSISPRK{DT,TT}, sol::AtomicSolutionPSDE{DT,TT},
+function initial_guess!(int::IntegratorSISPRK{DT,TT}, sol::SolutionStepPSDE{DT,TT},
                         cache::IntegratorCacheSISPRK{DT}=int.caches[DT]) where {DT,TT}
     int.solver.x .= 0
 end
@@ -294,7 +294,7 @@ function Integrators.function_stages!(x::Vector{ST}, b::Vector{ST},
 end
 
 
-function update_solution!(sol::AtomicSolutionPSDE{T}, tab::TableauSISPRK{T}, Δt::T, ΔW::Vector{T},
+function update_solution!(sol::SolutionStepPSDE{T}, tab::TableauSISPRK{T}, Δt::T, ΔW::Vector{T},
                           cache::IntegratorCacheSISPRK{T}) where {T}
 
     update_solution!(sol, cache.V, cache.F1, cache.F2, cache.B, cache.G1, cache.G2,
@@ -308,7 +308,7 @@ end
 
 
 "Integrate PSDE with a stochastic implicit partitioned Runge-Kutta integrator."
-function Integrators.integrate_step!(int::IntegratorSISPRK{DT,TT}, sol::AtomicSolutionPSDE{DT,TT},
+function Integrators.integrate_step!(int::IntegratorSISPRK{DT,TT}, sol::SolutionStepPSDE{DT,TT},
                                      cache::IntegratorCacheSISPRK{DT}=int.caches[DT]) where {DT,TT}
     # update nonlinear solver parameters from cache
     update_params!(int, sol)

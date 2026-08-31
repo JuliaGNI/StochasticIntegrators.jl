@@ -111,13 +111,13 @@ struct IntegratorSERK{DT, TT, D, M, S, ET <: NamedTuple} <: StochasticIntegrator
     end
 
     function IntegratorSERK(equation::SDE{DT,TT}, tableau::TableauSERK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorSERK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
+        IntegratorSERK{DT, ndims(equation), equation.m}(functions(equation), tableau, Δt; kwargs...)
     end
 end
 
 
 "Integrate SDE with explicit Runge-Kutta integrator."
-function Integrators.integrate_step!(int::IntegratorSERK{DT,TT}, sol::AtomicSolutionSDE{DT,TT},
+function Integrators.integrate_step!(int::IntegratorSERK{DT,TT}, sol::SolutionStepSDE{DT,TT},
                                      cache::IntegratorCacheSERK{DT}=int.caches[DT]) where {DT,TT}
     local tᵢ::TT
     local ydrift::DT

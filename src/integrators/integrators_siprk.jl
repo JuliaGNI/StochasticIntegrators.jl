@@ -182,7 +182,7 @@ struct IntegratorSIPRK{DT, TT, D, M, S,
     end
 
     function IntegratorSIPRK(equation::PSDE{DT,TT}, tableau::TableauSIPRK{TT}, Δt::TT; kwargs...) where {DT,TT}
-        IntegratorSIPRK{DT, ndims(equation), equation.m}(get_functions(equation), tableau, Δt; kwargs...)
+        IntegratorSIPRK{DT, ndims(equation), equation.m}(functions(equation), tableau, Δt; kwargs...)
     end
 end
 
@@ -210,13 +210,13 @@ When calling this function, int.params should contain the data:
 `int.params.t` - the time of the previous step
 `int.params.ΔW`- the increment of the Brownian motion for the current step
 """
-function initial_guess!(int::IntegratorSIPRK{DT,TT}, sol::AtomicSolutionPSDE{DT,TT},
+function initial_guess!(int::IntegratorSIPRK{DT,TT}, sol::SolutionStepPSDE{DT,TT},
                         cache::IntegratorCacheSIPRK{DT}=int.caches[DT]) where {DT,TT}
 
     local t2::TT
     local Δt_local::TT
 
-    # Evaluating the get_functions v and B at t,q - same for all stages
+    # Evaluating the functions v and B at t,q - same for all stages
     int.params.equ[:v](int.params.t, int.params.q, int.params.p, cache.V1)
     int.params.equ[:B](int.params.t, int.params.q, int.params.p, cache.B1)
     int.params.equ[:f](int.params.t, int.params.q, int.params.p, cache.F1)
@@ -377,7 +377,7 @@ function Integrators.function_stages!(x::Vector{ST}, b::Vector{ST},
 end
 
 
-function update_solution!(sol::AtomicSolutionPSDE{T}, tab::TableauSIPRK{T}, Δt::T, ΔW::Vector{T},
+function update_solution!(sol::SolutionStepPSDE{T}, tab::TableauSIPRK{T}, Δt::T, ΔW::Vector{T},
                           cache::IntegratorCacheSIPRK{T}) where {T}
 
     update_solution!(sol, cache.V, cache.F, cache.B, cache.G,
@@ -393,7 +393,7 @@ end
 
 
 "Integrate PSDE with a stochastic implicit partitioned Runge-Kutta integrator."
-function Integrators.integrate_step!(int::IntegratorSIPRK{DT,TT}, sol::AtomicSolutionPSDE{DT,TT},
+function Integrators.integrate_step!(int::IntegratorSIPRK{DT,TT}, sol::SolutionStepPSDE{DT,TT},
                                      cache::IntegratorCacheSIPRK{DT}=int.caches[DT]) where {DT,TT}
     # update nonlinear solver parameters from cache
     update_params!(int, sol)

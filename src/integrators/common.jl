@@ -11,7 +11,7 @@ function truncate_increments!(ΔW, A)
     end
 end
 
-function update_params!(int::IntegratorSIRK, sol::AtomicSolutionSDE)
+function update_params!(int::IntegratorSIRK, sol::SolutionStepSDE)
     # set time for nonlinear solver and copy previous solution
     int.params.t  = sol.t
     int.params.q .= sol.q
@@ -22,7 +22,7 @@ function update_params!(int::IntegratorSIRK, sol::AtomicSolutionSDE)
     truncate_increments!(int.params.ΔW, int.params.A)
 end
 
-function update_params!(int::Union{IntegratorSIPRK,IntegratorSISPRK}, sol::AtomicSolutionPSDE)
+function update_params!(int::Union{IntegratorSIPRK,IntegratorSISPRK}, sol::SolutionStepPSDE)
     # set time for nonlinear solver and copy previous solution
     int.params.t  = sol.t
     int.params.q .= sol.q
@@ -34,7 +34,7 @@ function update_params!(int::Union{IntegratorSIPRK,IntegratorSISPRK}, sol::Atomi
     truncate_increments!(int.params.ΔW, int.params.A)
 end
 
-function update_params!(int::IntegratorWIRK, sol::AtomicSolutionSDE)
+function update_params!(int::IntegratorWIRK, sol::SolutionStepSDE)
     # set time for nonlinear solver and copy previous solution
     int.params.t  = sol.t
     int.params.q .= sol.q
@@ -54,7 +54,7 @@ Update solution for stochastic Runge-Kutta methods (SIRK and WIRK)
 - `Δt`: the time step
 - `ΔW`: the increments of the Brownian motion (SFIRK) or the increments represented by the random variables Î^(k) (WFIRK)
 """
-function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}}, B::Vector{Matrix{T}},
+function update_solution!(sol::SolutionStepSDE{T}, V::Vector{Vector{T}}, B::Vector{Matrix{T}},
                             bdrift::Vector{T}, bdiff::Vector{T}, Δt::T, ΔW::Vector{T}, Δy::Vector{T}=zero(ΔW)) where {T}
 
     @assert length(bdrift) == length(bdiff) == length(V) == length(B)
@@ -101,7 +101,7 @@ Update solution for stochastic Runge-Kutta methods (SERK)
 - `ΔW`: the increments of the Brownian motion
 - `ΔZ`: the integrals of the increments of the Brownian motion
 """
-function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}}, B::Vector{Matrix{T}},
+function update_solution!(sol::SolutionStepSDE{T}, V::Vector{Vector{T}}, B::Vector{Matrix{T}},
                             bdrift::Vector{T}, bdiff::Vector{T}, bdiff2::Vector{T},
                             Δt::T, ΔW::Vector{T}, ΔZ::Vector{T}, Δy::Vector{T}=zero(ΔW)) where {T}
 
@@ -138,7 +138,7 @@ Update solution for stochastic partitioned Runge-Kutta methods
 - `Δt`: the time step
 - `ΔW`: the increments of the Brownian motion
 """
-function update_solution!(sol::AtomicSolutionPSDE{T},
+function update_solution!(sol::SolutionStepPSDE{T},
                           V::Vector{Vector{T}}, F::Vector{Vector{T}},
                           B::Vector{Matrix{T}}, G::Vector{Matrix{T}},
                           bqdrift::Vector{T}, bqdiff::Vector{T},
@@ -192,7 +192,7 @@ Update solution for stochastic split partitioned Runge-Kutta methods
 - `Δt`: the time step
 - `ΔW`: the increments of the Brownian motion
 """
-function update_solution!(sol::AtomicSolutionPSDE{T},
+function update_solution!(sol::SolutionStepPSDE{T},
                             V::Vector{Vector{T}}, F1::Vector{Vector{T}}, F2::Vector{Vector{T}},
                             B::Vector{Matrix{T}}, G1::Vector{Matrix{T}}, G2::Vector{Matrix{T}},
                             bqdrift::Vector{T}, bqdiff::Vector{T},
@@ -249,7 +249,7 @@ Update solution for weak Runge-Kutta methods WERK
 - `Δt`: the time step
 - `ΔW`: the increments of the Brownian motion represented by the random variables Î^(k)
 """
-function update_solution!(sol::AtomicSolutionSDE{T}, V::Vector{Vector{T}},
+function update_solution!(sol::SolutionStepSDE{T}, V::Vector{Vector{T}},
                             B1::Vector{Matrix{T}}, B2::Vector{Matrix{T}}, α::Vector{T},
                             β1::Vector{T}, β2::Vector{T}, Δt::T, ΔW::Vector{T}, Δy::Vector{T}=zero(ΔW)) where {T}
     @assert length(α) == length(β1) == length(β2) == length(V) == length(B1) == length(B2)
