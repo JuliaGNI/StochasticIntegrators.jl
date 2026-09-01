@@ -64,3 +64,37 @@ function TableauSRKw2(x1::Number = 0.0, x2::Number = 0.0, x3::Number = 0.0)
 
     TableauWIRK(:SRKw2, A0, A1, B0, B1, B3, α, β1, c0, c1)
 end
+
+#
+# Named methods
+#
+
+@doc raw"""
+    SRKw1(λ = 0.0; rng = Random.default_rng())
+
+One-stage weak implicit Runge-Kutta method SRKw1 of Wang, Hong & Xu, *Construction of Symplectic
+Runge-Kutta Methods for Stochastic Hamiltonian Systems*, Commun. Comput. Phys. 21(1), 2017. Weak
+order 1.0.
+
+`λ` is a free parameter of the family; `λ = 1/2` reduces the method to the implicit midpoint rule
+with the Wiener increments replaced by the discrete weak variables.
+
+Reproduced in Kraus & Tyranowski §3.4.3, where it is shown that the symplecticity conditions of
+Wang, Hong & Xu are equivalent to the weak Lagrange-d'Alembert conditions — so this is a
+variational integrator for forced systems too.
+"""
+SRKw1(λ::Number = 0.0; kwargs...) = WIRK(TableauSRKw1(λ); kwargs...)
+
+@doc raw"""
+    SRKw2(λ₁ = 0.0, λ₂ = 0.0, λ₃ = 0.0; rng = Random.default_rng())
+
+Four-stage weak implicit Runge-Kutta method SRKw2 of Wang, Hong & Xu (2017). Weak order 2.0 for
+systems driven by one-dimensional noise.
+
+The three parameters are free and, as the paper notes, have no effect on ``q_{n+1}`` or
+``p_{n+1}``; they default to zero for convenience. Of the weak methods here this is the most
+accurate.
+"""
+function SRKw2(λ₁::Number = 0.0, λ₂::Number = 0.0, λ₃::Number = 0.0; kwargs...)
+    WIRK(TableauSRKw2(λ₁, λ₂, λ₃); kwargs...)
+end

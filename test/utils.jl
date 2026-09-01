@@ -1,31 +1,28 @@
-using GeometricIntegrators.Utils
+using LinearAlgebra: norm
 
-function rel_energy_err(sol::SolutionSDE{AT, TT, WT, 1}) where {AT, TT, WT}
-    en_ref = 0.5 * L2norm(sol.q[begin])
-    en_last = 0.5 * L2norm(sol.q[end])
+# The Kubo oscillator conserves its energy exactly along every sample path, because its diffusion
+# is proportional to its drift and the solution is therefore the deterministic one evaluated at
+# the random time θ(t) = t + νW(t). Any drift in these quantities is the integrator's.
 
-    return abs((en_last-en_ref)/en_ref)
+"Relative error of the energy `‖q‖²/2` between the first and last step of an SDE solution."
+function rel_energy_err(sol::GeometricSolution)
+    en_ref = 0.5 * norm(sol.q[begin])^2
+    en_end = 0.5 * norm(sol.q[end])^2
+    abs((en_end - en_ref) / en_ref)
 end
 
-function rel_energy_err(sol::SolutionSDE{AT, TT, WT, 2}) where {AT, TT, WT}
-    en_ref = 0.5 .* map(q -> L2norm(q), sol.q[begin, :])
-    en_last = 0.5 .* map(q -> L2norm(q), sol.q[end, :])
-
-    return maximum(abs.((en_last .- en_ref) ./ en_ref))
+"Relative error of the energy `(‖q‖² + ‖p‖²)/2` between the first and last step of a PSDE solution."
+function rel_energy_err_pq(sol::GeometricSolution)
+    en_ref = 0.5 * (norm(sol.q[begin])^2 + norm(sol.p[begin])^2)
+    en_end = 0.5 * (norm(sol.q[end])^2 + norm(sol.p[end])^2)
+    abs((en_end - en_ref) / en_ref)
 end
 
-function rel_energy_err(sol::SolutionPSDE{AT, TT, WT, 1}) where {AT, TT, WT}
-    en_ref = 0.5 * (L2norm(sol.q[begin]) + L2norm(sol.p[begin]))
-    en_last = 0.5 * (L2norm(sol.q[end]) + L2norm(sol.p[end]))
-
-    return abs((en_last-en_ref)/en_ref)
+"Largest relative energy error over the members of an ensemble solution."
+function max_rel_energy_err(sol::EnsembleSolution)
+    maximum(rel_energy_err, sol)
 end
 
-function rel_energy_err(sol::SolutionPSDE{AT, TT, WT, 2}) where {AT, TT, WT}
-    en_ref = 0.5 .* map(q -> L2norm(q), sol.q[begin, :]) .+
-             0.5 .* map(p -> L2norm(p), sol.p[begin, :])
-    en_last = 0.5 .* map(q -> L2norm(q), sol.q[end, :]) .+
-              0.5 .* map(p -> L2norm(p), sol.p[end, :])
-
-    return maximum(abs.((en_last .- en_ref) ./ en_ref))
+function max_rel_energy_err_pq(sol::EnsembleSolution)
+    maximum(rel_energy_err_pq, sol)
 end
