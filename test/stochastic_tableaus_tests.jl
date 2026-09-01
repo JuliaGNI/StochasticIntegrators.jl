@@ -3,7 +3,6 @@ using StochasticIntegrators
 using Test
 
 @testset "$(rpad("Stochastic Runge-Kutta Tableaus",80))" begin
-
     @test typeof(TableauStochasticEuler()) <: TableauSERK
     @test typeof(TableauStochasticHeun()) <: TableauSERK
     @test typeof(TableauPlaten()) <: TableauSERK
@@ -27,5 +26,4 @@ using Test
 
     @test typeof(TableauSRKw1()) <: TableauWIRK
     @test typeof(TableauSRKw2()) <: TableauWIRK
-
 end

@@ -10,54 +10,51 @@ using SimpleSolvers
 @reexport using GeometricBase.Config
 @reexport using GeometricBase.Utils
 @reexport using GeometricEquations
-@reexport using GeometricSolutions
-
-
-import GeometricBase: reset!, update!
 
 import GeometricEquations: AbstractEquationSDE, AbstractEquationPSDE,
-    SDE, PSDE, SPSDE, functions
-
+                           SDE, PSDE, SPSDE, get_functions
 
 import GeometricIntegrators.Integrators
-import GeometricIntegrators.Integrators: GeometricIntegrator, Parameters
+import GeometricIntegrators.Integrators: Integrator, Parameters
 
-import GeometricIntegrators.Integrators: integrate!, integrate_common!, get_internal_variables
+import GeometricIntegrators.Integrators: integrate!, integrate_common!,
+                                         get_internal_variables
 
 import GeometricIntegrators.Integrators: IntegratorCache, CacheDict, CacheType
 
-import GeometricIntegrators.Integrators: create_internal_stage_vector, create_internal_stage_matrix,
-    create_internal_stage_vector_with_zero, create_nonlinear_solver
+import GeometricIntegrators.Integrators: create_internal_stage_vector,
+                                         create_internal_stage_matrix,
+                                         create_internal_stage_vector_with_zero,
+                                         create_nonlinear_solver
 
+import GeometricIntegrators.Solutions
 
-import GeometricIntegrators: SolutionStep, Solution
+import GeometricIntegrators.Solutions: AtomicSolution, Solution
 
-import GeometricIntegrators: TimeSeries, DataSeries
+import GeometricIntegrators.Solutions: TimeSeries, DataSeries
 
-import GeometricIntegrators.Integrators: hdf5, timesteps, nsave, counter, offset, lastentry,
-    DEFAULT_NSAVE, DEFAULT_NWRITE
+import GeometricIntegrators.Solutions: hdf5, timesteps, nsave, counter, offset, lastentry,
+                                       DEFAULT_NSAVE, DEFAULT_NWRITE
 
-import GeometricIntegrators.Integrators: get_initial_conditions, get_initial_conditions!, set_initial_conditions!,
-    get_data!, set_data!, compute_timeseries!,
-    save_attributes,
-    init_timeteps, init_solution, save_solution
+import GeometricIntegrators.Solutions: get_initial_conditions, get_initial_conditions!,
+                                       set_initial_conditions!,
+                                       get_solution, get_solution!, set_solution!,
+                                       get_data!, set_data!, update!, compute_timeseries!,
+                                       save_attributes,
+                                       init_timeteps, init_solution, save_solution
 
-import GeometricSolutions: get_solution, get_solution!, set_solution!
+import RungeKutta: Tableau, TableauGauss, TableauLobattoIIIA, TableauLobattoIIIB,
+                   TableauLobattoIIID, istrilstrict
 
-import RungeKutta: Tableau, TableauGauss, TableauLobattoIIIA, TableauLobattoIIIB, TableauLobattoIIID, istrilstrict
-
-
-include("processes/grid_process.jl")
-include("processes/stochastic_process.jl")
-include("processes/wiener_process.jl")
+const DEFAULT_SCONV = :strong
 
 export SemiMartingale, WienerProcess, generate_wienerprocess!, conv
 
-# include("solutions/wienerprocess.jl")
+include("solutions/wienerprocess.jl")
 
 export AtomicSolution, AtomicSolutionSDE, AtomicSolutionPSDE
 export update!, cut_periodic_solution!,
-    get_increments, get_increments!, set_increments!
+       get_increments, get_increments!, set_increments!
 
 include("solutions/atomic_solution_sde.jl")
 include("solutions/atomic_solution_psde.jl")
@@ -66,9 +63,8 @@ export Solution, StochasticSolution
 export SolutionSDE, SolutionPSDE
 export hdf5, timesteps, nsave, counter, offset, lastentry
 export get_initial_conditions, get_initial_conditions!, set_initial_conditions!,
-    get_solution, get_solution!, set_solution!,
-    create_hdf5, create_hdf5!
-
+       get_solution, get_solution!, set_solution!,
+       create_hdf5, create_hdf5!
 
 include("solutions/solution.jl")
 include("solutions/solution_sde.jl")
@@ -77,12 +73,11 @@ include("solutions/solution_hdf5.jl")
 
 include("solutions/atomic_solution_constructors.jl")
 
-
 export Parameters
 
 export Integrator, StochasticIntegrator
 export SDEIntegrator, PSDEIntegrator,
-    StochasticIntegratorRK, StochasticIntegratorPRK
+       StochasticIntegratorRK, StochasticIntegratorPRK
 
 export nstages, noisedims, integrate!
 
@@ -105,7 +100,6 @@ include("integrators/integrators_werk.jl")
 include("integrators/integrators_wirk.jl")
 include("integrators/common.jl")
 include("integrators/integrators.jl")
-
 
 include("tableaus/tableaus_sirk.jl")
 

@@ -19,7 +19,9 @@ Atomic solution for an SDE.
 * `ΔZ`: Wiener process driving the stochastic process q
 * `K`:  integer parameter defining the truncation of the increments of the Wiener process (for strong solutions)
 """
-mutable struct SolutionStepSDE{DT<:Number,TT<:Real,AT<:AbstractArray{DT},IT<:NamedTuple} <: SolutionStep{DT,TT,AT}
+mutable struct AtomicSolutionSDE{
+    DT <: Number, TT <: Real, AT <: AbstractArray{DT}, IT <: NamedTuple} <:
+               AtomicSolution{DT, TT, AT}
     t::TT
     t̄::TT
 
@@ -34,14 +36,15 @@ mutable struct SolutionStepSDE{DT<:Number,TT<:Real,AT<:AbstractArray{DT},IT<:Nam
 
     internal::IT
 
-    function SolutionStepSDE{DT,TT,AT,IT}(nd, nm, internal::IT) where {DT,TT,AT,IT}
+    function AtomicSolutionSDE{DT, TT, AT, IT}(nd, nm, internal::IT) where {DT, TT, AT, IT}
         new(zero(TT), zero(TT),
             AT(zeros(DT, nd)), AT(zeros(DT, nd)), AT(zeros(DT, nd)),
             AT(zeros(DT, nm)), AT(zeros(DT, nm)), 0,
             internal)
     end
 
-    function SolutionStepSDE{DT,TT,AT,IT}(t::TT, q::AT, ΔW::AT, ΔZ::AT, internal::IT) where {DT,TT,AT,IT}
+    function AtomicSolutionSDE{DT, TT, AT, IT}(
+            t::TT, q::AT, ΔW::AT, ΔZ::AT, internal::IT) where {DT, TT, AT, IT}
         new(zero(t), zero(t),
             zero(q), zero(q), zero(q),
             zero(ΔW), zero(ΔZ), 0,
@@ -49,46 +52,53 @@ mutable struct SolutionStepSDE{DT<:Number,TT<:Real,AT<:AbstractArray{DT},IT<:Nam
     end
 end
 
-SolutionStepSDE(::Type{DT}, ::Type{TT}, ::Type{AT}, nd, nm, internal::IT=NamedTuple()) where {DT,TT,AT,IT} = SolutionStepSDE{DT,TT,AT,IT}(nd, nm, internal)
-SolutionStepSDE(t::TT, q::AT, ΔW::AT, ΔZ::AT, internal::IT=NamedTuple()) where {DT,TT,AT<:AbstractArray{DT},IT} = SolutionStepSDE{DT,TT,AT,IT}(t, q, ΔW, ΔZ, internal)
+function AtomicSolutionSDE(::Type{DT}, ::Type{TT}, ::Type{AT}, nd, nm,
+        internal::IT = NamedTuple()) where {DT, TT, AT, IT}
+    AtomicSolutionSDE{DT, TT, AT, IT}(nd, nm, internal)
+end
+function AtomicSolutionSDE(t::TT, q::AT, ΔW::AT, ΔZ::AT,
+        internal::IT = NamedTuple()) where {DT, TT, AT <: AbstractArray{DT}, IT}
+    AtomicSolutionSDE{DT, TT, AT, IT}(t, q, ΔW, ΔZ, internal)
+end
 
-function set_solution!(asol::SolutionStepSDE, sol)
+function Solutions.set_solution!(asol::AtomicSolutionSDE, sol)
     t, q = sol
     asol.t = t
     asol.q .= q
 end
 
-function set_increments!(asol::SolutionStepSDE, incs)
+function set_increments!(asol::AtomicSolutionSDE, incs)
     ΔW, ΔZ = incs
     asol.ΔW .= ΔW
     asol.ΔZ .= ΔZ
 end
 
-function get_solution(asol::SolutionStepSDE)
+function Solutions.get_solution(asol::AtomicSolutionSDE)
     (asol.t, asol.q)
 end
 
-function get_increments(asol::SolutionStepSDE)
+function get_increments(asol::AtomicSolutionSDE)
     (asol.ΔW, asol.ΔZ)
 end
 
-function get_increments!(asol::SolutionStepSDE, ΔW, ΔZ)
+function get_increments!(asol::AtomicSolutionSDE, ΔW, ΔZ)
     ΔW .= asol.ΔW
     ΔZ .= asol.ΔZ
 end
 
-function reset!(asol::SolutionStepSDE, Δt)
+function GeometricBase.reset!(asol::AtomicSolutionSDE, Δt)
     asol.t̄ = asol.t
     asol.q̄ .= asol.q
     asol.t += Δt
 end
 
-function update!(asol::SolutionStepSDE{DT}, y::Vector{DT}) where {DT}
+function Solutions.update!(asol::AtomicSolutionSDE{DT}, y::Vector{DT}) where {DT}
     for k in eachindex(y)
         update!(asol, y[k], k)
     end
 end
 
-function update!(asol::SolutionStepSDE{DT}, y::DT, k::Union{Int,CartesianIndex}) where {DT}
+function Solutions.update!(asol::AtomicSolutionSDE{DT}, y::DT, k::Union{
+        Int, CartesianIndex}) where {DT}
     asol.q[k], asol.q̃[k] = compensated_summation(y, asol.q[k], asol.q̃[k])
 end

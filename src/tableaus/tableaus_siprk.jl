@@ -6,7 +6,6 @@ Tableau for the stochastic symplectic Euler method
   for special choices of the stochastic Hamiltonians and forces, e.g., h=h(q), f=0.
 """
 function TableauStochasticSymplecticEuler()
-
     a_q = ones(Float64, 1, 1)
     b_q = [1.0]
     c_q = [1.0]
@@ -15,14 +14,13 @@ function TableauStochasticSymplecticEuler()
     b_p = [1.0]
     c_p = [0.0]
 
-    TableauSIPRK(:StochasticSymplecticEuler, 1, a_q, b_q, c_q, 1, a_q, b_q, c_q, 1, a_p, b_p, c_p, 1, a_p, b_p, c_p)
+    TableauSIPRK(:StochasticSymplecticEuler, 1, a_q, b_q, c_q, 1,
+        a_q, b_q, c_q, 1, a_p, b_p, c_p, 1, a_p, b_p, c_p)
 end
-
 
 "Tableau for the 2-stage stochastic LobattoIIA-IIB method (Stormer-Verlet)"
 function TableauStochasticStoermerVerlet()
-
     TableauSIPRK(:StochasticStoermerVerlet,
-                 TableauLobattoIIIA(2), TableauLobattoIIIA(2),
-                 TableauLobattoIIIB(2), TableauLobattoIIIB(2))
+        TableauLobattoIIIA(2), TableauLobattoIIIA(2),
+        TableauLobattoIIIB(2), TableauLobattoIIIB(2))
 end
