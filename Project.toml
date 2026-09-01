@@ -1,7 +1,7 @@
 name = "StochasticIntegrators"
 uuid = "62159e39-8b8b-4adf-9c3e-8dd1da10d3ac"
-authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>", "Tomasz M. Tyranowski <tomasz.tyranowski@ipp.mpg.de>"]
 version = "0.2.0"
+authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>", "Tomasz M. Tyranowski <tomasz.tyranowski@ipp.mpg.de>"]
 
 [deps]
 GeometricBase = "9a0b12b7-583b-4f04-aa1f-d8551b6addc9"
@@ -20,7 +20,7 @@ SimpleSolvers = "36b790f5-6434-4fbe-b711-1f64a1e2f6a2"
 [compat]
 GeometricBase = "0.10"
 GeometricEquations = "0.18"
-GeometricIntegrators = "0.14"
+GeometricIntegrators = "0.14, 0.18"
 GeometricSolutions = "0.4"
 HDF5 = "0.16, 0.17"
 OffsetArrays = "1"
