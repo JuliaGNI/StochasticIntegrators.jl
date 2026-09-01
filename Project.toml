@@ -1,7 +1,7 @@
 name = "StochasticIntegrators"
 uuid = "62159e39-8b8b-4adf-9c3e-8dd1da10d3ac"
-authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>", "Tomasz M. Tyranowski <tomasz.tyranowski@ipp.mpg.de>"]
 version = "0.2.0"
+authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>", "Tomasz M. Tyranowski <tomasz.tyranowski@ipp.mpg.de>"]
 
 [deps]
 GeometricBase = "9a0b12b7-583b-4f04-aa1f-d8551b6addc9"
@@ -27,7 +27,7 @@ OffsetArrays = "1"
 Parameters = "0.12"
 Reexport = "1"
 RungeKutta = "0.5"
-SimpleSolvers = "0.3"
+SimpleSolvers = "0.3, 0.13"
 julia = "1.10"
 
 [extras]
