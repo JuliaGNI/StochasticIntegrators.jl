@@ -101,3 +101,23 @@ function TableauRoesslerRS2()
     TableauWERK(
         :RoesslerRS2_explicit_method, A0, A1, A2, B0, B1, B2, B3, α, β1, β2, c0, c1, c2)
 end
+
+#
+# Named methods
+#
+
+@doc raw"""
+    RoesslerRS1(; rng = Random.default_rng())
+
+Weak explicit Runge-Kutta method RS1 of Rößler, *Second order Runge-Kutta methods for Stratonovich
+stochastic differential equations*, BIT 47 (2007). Weak order 2.0.
+"""
+RoesslerRS1(; kwargs...) = WERK(TableauRoesslerRS1(); kwargs...)
+
+@doc raw"""
+    RoesslerRS2(; rng = Random.default_rng())
+
+Weak explicit Runge-Kutta method RS2 of Rößler, *Second order Runge-Kutta methods for Stratonovich
+stochastic differential equations*, BIT 47 (2007). Weak order 2.0.
+"""
+RoesslerRS2(; kwargs...) = WERK(TableauRoesslerRS2(); kwargs...)

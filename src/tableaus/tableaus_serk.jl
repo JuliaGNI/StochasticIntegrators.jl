@@ -159,3 +159,85 @@ function TableauBurrageG5()
     TableauSERK(:BurrageG5_explicit_method, 4, a_drift, b_drift, c_drift,
         4, a_diff, b_diff, c_diff, 0, a_diff2, b_diff2, c_diff2)
 end
+
+#
+# Named methods
+#
+
+@doc raw"""
+    StochasticEuler(; rng = Random.default_rng())
+
+Stochastic Euler method — the one-stage explicit scheme
+
+```math
+q_{n+1} = q_n + \Delta t \, v(t_n, q_n) + \sum_r \Delta W^r \, B^{\cdot r}(t_n, q_n) .
+```
+
+Strong order 0.5 in general. The cheapest thing that works, and the natural baseline: any scheme
+worth using should beat it at equal cost.
+"""
+StochasticEuler(; kwargs...) = SERK(TableauStochasticEuler(); kwargs...)
+
+@doc raw"""
+    StochasticHeun(; rng = Random.default_rng())
+
+Stochastic Heun method — the two-stage explicit trapezoidal scheme, with the same tableau applied
+to the drift and the diffusion. Strong order 0.5, weak order 1.0 in general.
+"""
+StochasticHeun(; kwargs...) = SERK(TableauStochasticHeun(); kwargs...)
+
+@doc raw"""
+    Platen(; rng = Random.default_rng())
+
+Platen's two-stage explicit method, Eq. (52) of Burrage & Burrage (1996), *High strong order
+explicit Runge-Kutta methods for stochastic ordinary differential equations*.
+
+Strong order 1.0 for a one-dimensional Wiener process. Its long-time behaviour is poor — it is not
+structure-preserving, and the energy of an oscillator drifts visibly over long runs — so it is
+mainly of interest for short integrations and for comparison.
+"""
+Platen(; kwargs...) = SERK(TableauPlaten(); kwargs...)
+
+@doc raw"""
+    BurrageR2(; rng = Random.default_rng())
+
+Two-stage explicit R2 method of Burrage & Burrage, Eq. (51) of *High strong order explicit
+Runge-Kutta methods for stochastic ordinary differential equations* (1996).
+
+Strong order 1.0 for a one-dimensional Wiener process. This is also the predictor used for the
+initial guess of the implicit [`SIRK`](@ref) methods.
+"""
+BurrageR2(; kwargs...) = SERK(TableauBurrageR2(); kwargs...)
+
+@doc raw"""
+    BurrageCL(; rng = Random.default_rng())
+
+Four-stage explicit CL method of Burrage & Burrage, Eq. (56) of *High strong order explicit
+Runge-Kutta methods for stochastic ordinary differential equations* (1996). Strong order 1.5 for a
+one-dimensional Wiener process.
+"""
+BurrageCL(; kwargs...) = SERK(TableauBurrageCL(); kwargs...)
+
+@doc raw"""
+    BurrageE1(; rng = Random.default_rng())
+
+Four-stage explicit E1 method of Burrage & Burrage, *Order conditions for stochastic Runge-Kutta
+methods by B-series* (2000).
+
+Strong order 1.0 for a one-dimensional Wiener process, and measured at 1.05 on the Kubo oscillator
+by `scripts/convergence_order.jl`.
+
+It carries a second diffusion tableau against the iterated integrals ``\Delta Z``. Those terms are
+*necessary* to exceed the order-1.0 ceiling that schemes built from ``\Delta W`` alone are subject
+to, but they are not sufficient on their own — this method uses them and is still of order 1.0,
+whereas [`BurrageCL`](@ref) and [`BurrageG5`](@ref) reach 1.5.
+"""
+BurrageE1(; kwargs...) = SERK(TableauBurrageE1(); kwargs...)
+
+@doc raw"""
+    BurrageG5(; rng = Random.default_rng())
+
+Five-stage explicit G5 method of Burrage & Burrage, *Order conditions for stochastic Runge-Kutta
+methods by B-series* (2000). Like [`BurrageE1`](@ref) it uses the ``\Delta Z`` terms.
+"""
+BurrageG5(; kwargs...) = SERK(TableauBurrageG5(); kwargs...)

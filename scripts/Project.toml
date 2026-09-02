@@ -1,0 +1,17 @@
+[deps]
+GeometricIntegratorsBase = "71212ab4-08a2-48eb-a02b-4cbad0e9c44a"
+GeometricProblems = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+RungeKutta = "fb486d5c-30a0-4a8a-8415-a8b4ace5a6f7"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+StochasticIntegrators = "62159e39-8b8b-4adf-9c3e-8dd1da10d3ac"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[sources]
+StochasticIntegrators = {path = ".."}
+
+[compat]
+GeometricIntegratorsBase = "0.6.5"
+GeometricProblems = "0.9"
+RungeKutta = "0.6"

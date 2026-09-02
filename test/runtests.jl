@@ -1,14 +1,17 @@
 using SafeTestsets
 
-@safetestset "Atomic Solutions                                                                " begin
-    include("atomic_solutions_tests.jl")
+@safetestset "Methods and Tableaus                                                            " begin
+    include("methods_tests.jl")
 end
-@safetestset "Stochastic Solutions                                                            " begin
-    include("stochastic_solutions_tests.jl")
-end
-@safetestset "Stochastic Tableaus                                                             " begin
-    include("stochastic_tableaus_tests.jl")
+@safetestset "Noise Processes                                                                 " begin
+    include("processes_tests.jl")
 end
 @safetestset "Stochastic Integrators                                                          " begin
-    include("stochastic_integrators_tests.jl")
+    include("integrators_tests.jl")
+end
+@safetestset "Multidimensional Noise                                                          " begin
+    include("multidimensional_noise_tests.jl")
+end
+@safetestset "Package Quality                                                                 " begin
+    include("aqua_tests.jl")
 end

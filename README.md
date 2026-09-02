@@ -1,11 +1,21 @@
 # StochasticIntegrators
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaGNI.github.io/StochasticIntegrators.jl/stable)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaGNI.github.io/StochasticIntegrators.jl/dev)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaGNI.github.io/StochasticIntegrators.jl/latest)
 [![Build Status](https://github.com/JuliaGNI/StochasticIntegrators.jl/workflows/CI/badge.svg)](https://github.com/JuliaGNI/StochasticIntegrators.jl/actions)
-[![Coverage](https://codecov.io/gh/JuliaGNI/StochasticIntegrators.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaGNI/StochasticIntegrators.jl)
+[![Coverage](https://codecov.io/gh/JuliaGNI/StochasticIntegrators.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaGNI/StochasticIntegrators.jl)
 
 StochasticIntegrators.jl is a library of geometric integrators for stochastic differential equations.
+
+Most of these methods are structure preserving: applied to a stochastic Hamiltonian system they
+are symplectic, and for forced or dissipative systems they are Lagrange-d'Alembert variational
+integrators. That is what keeps a long integration from accumulating spurious energy drift. The
+theory is developed in
+
+> M. Kraus and T. M. Tyranowski,
+> *Variational integrators for stochastic dissipative Hamiltonian systems*,
+> IMA Journal of Numerical Analysis, 2021.
+> [arXiv:1904.06205](https://arxiv.org/abs/1904.06205)
 
 
 ## Installation
@@ -15,12 +25,40 @@ StochasticIntegrators.jl is a library of geometric integrators for stochastic di
 ]add StochasticIntegrators
 ```
 
-## Development
+## Usage
 
-> **This package does not currently load.** It imports `GeometricIntegrators.Solutions` and
-> `GeometricIntegrators.Utils`, submodules that no longer exist, and a large part of it has been
-> superseded by `GeometricSolutions`. CI is expected to be red, and the `pre-commit` load test
-> below will block any commit that stages a `.jl` file until that is addressed.
+```julia
+using StochasticIntegrators
+using GeometricProblems.KuboOscillator
+
+sol = integrate(sdeproblem(), BurrageCL())          # explicit, strong
+sol = integrate(psdeproblem(), StochasticStoermerVerlet())   # symplectic
+sol = integrate(spsdeproblem(), ModifiedStochasticStoermerVerlet())  # forced systems
+sol = integrate(sdeproblem(), SRKw2())              # weak, for expectations
+```
+
+A problem carries its own driving noise: `WienerProcess(m)` draws increments as it goes, while
+`GridProcess(ΔW, ΔZ)` prescribes them, which is how a run is made reproducible or two methods
+compared on one sample path. Whether a scheme needs strong or weak increments follows from the
+method and is not a user option.
+
+See the [documentation](https://JuliaGNI.github.io/StochasticIntegrators.jl/latest) for the
+theory, the available methods and the implementation.
+
+## Verification
+
+Three scripts in `scripts/` establish the claims the package makes, and are worth running before
+trusting a result:
+
+- `tableau_conditions.jl` checks every tableau against the Lagrange-d'Alembert conditions and the
+  mean-square order conditions of the paper above, asserting the expected outcome for each scheme
+  — including the two that deliberately fail one set.
+- `convergence_order.jl` measures the mean-square convergence order on the Kubo oscillator against
+  its closed-form solution.
+- `step_allocations.jl` measures the per-step allocations of all six families, and asserts that
+  `integrate_step!` allocates nothing.
+
+## Development
 
 ### Git hooks
 
