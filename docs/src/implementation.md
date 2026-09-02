@@ -31,8 +31,10 @@ Two conventions matter when reading the step implementations:
   the operation that performs the compensated summation. `sol.q .+= Δq` does **not**: broadcasting
   falls through to the generic `AbstractArray` path, writes through `setindex!` and never touches
   the error field. Each mathematical increment is therefore accumulated in full into a scratch
-  vector and added once; splitting one increment over several `add!` calls would compensate each
-  piece separately for no benefit.
+  vector before it is added, rather than added term by term; splitting one increment over several
+  `add!` calls would compensate each piece separately for no benefit. A step still makes more than
+  one `add!` — the weights `b` and the correction weights `b̂` that `RungeKutta.Tableau` carries are
+  applied separately, which is a higher-precision splitting rather than one increment broken up.
 
 A stochastic step adds one thing at the front: drawing the increments for the step.
 
@@ -92,7 +94,6 @@ its internal stage storage. Helpers:
 ```@docs
 create_internal_stage_vector
 create_internal_stage_matrix
-increments
 ```
 
 ## Adding a method

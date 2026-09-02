@@ -20,12 +20,29 @@ abstract type PSDEMethod <: StochasticMethod end
 "Stochastic method for a `SPSDEProblem`."
 abstract type SPSDEMethod <: StochasticMethod end
 
+"""
+    issdemethod(method)
+
+Whether `method` integrates an `SDEProblem`. Accepts an instance or a type, and answers `false`
+for any other `GeometricMethod`, so it can be asked of a method of unknown kind.
+"""
 issdemethod(::Union{SDEMethod, Type{<:SDEMethod}}) = true
 issdemethod(::Union{GeometricMethod, Type{<:GeometricMethod}}) = false
 
+"""
+    ispsdemethod(method)
+
+Whether `method` integrates a `PSDEProblem`. See [`issdemethod`](@ref).
+"""
 ispsdemethod(::Union{PSDEMethod, Type{<:PSDEMethod}}) = true
 ispsdemethod(::Union{GeometricMethod, Type{<:GeometricMethod}}) = false
 
+"""
+    isspsdemethod(method)
+
+Whether `method` integrates an `SPSDEProblem`, the split form in which the forcing is given as two
+separate terms. See [`issdemethod`](@ref).
+"""
 isspsdemethod(::Union{SPSDEMethod, Type{<:SPSDEMethod}}) = true
 isspsdemethod(::Union{GeometricMethod, Type{<:GeometricMethod}}) = false
 
@@ -59,7 +76,7 @@ julia> convergence(SRKw1())
 """
 function convergence end
 
-# Number of internal stages of a stochastic Runge-Kutta method.
+"Number of internal stages of a stochastic Runge-Kutta method."
 @inline nstages(method::StochasticMethod) = tableau(method).s
 @inline eachstage(method::StochasticMethod) = Base.OneTo(nstages(method))
 

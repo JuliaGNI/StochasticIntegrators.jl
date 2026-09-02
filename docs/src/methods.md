@@ -35,6 +35,10 @@ SDEMethod
 PSDEMethod
 SPSDEMethod
 convergence
+issdemethod
+ispsdemethod
+isspsdemethod
+nstages
 ```
 
 ## Explicit strong methods

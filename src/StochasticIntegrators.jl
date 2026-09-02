@@ -17,7 +17,7 @@ using Reexport
 # reachable as `GeometricBase.solution`.
 using GeometricSolutions: solution
 
-import GeometricBase: add!, equations, name, noise, noisedims, tableau, timestep
+import GeometricBase: equations, name, noise, noisedims, tableau, timestep
 
 import GeometricEquations: AbstractProblemSDE, AbstractProblemPSDE, AbstractProblemSPSDE,
                            AbstractStochasticProcess, WienerProcess, GridProcess,

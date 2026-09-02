@@ -12,9 +12,6 @@ abstract type SDEIntegratorCache{DT} <: StochasticIntegratorCache{DT} end
 "Cache of an integrator for a `PSDEProblem` or `SPSDEProblem`."
 abstract type PSDEIntegratorCache{DT} <: StochasticIntegratorCache{DT} end
 
-"The increments `(ΔW, ΔZ)` of the current time step."
-increments(cache::StochasticIntegratorCache) = (cache.ΔW, cache.ΔZ)
-
 "`S` internal stage vectors of length `D`."
 create_internal_stage_vector(DT, D, S) = [zeros(DT, D) for _ in 1:S]
 
@@ -48,11 +45,3 @@ function sample_noise!(int::GeometricIntegrator{<:StochasticMethod}, sol)
 
     c
 end
-
-"""
-    increments(int)
-
-The increments of the current step, read from the cache belonging to the problem's own data type
-whatever element type the surrounding code is specialised on. See [`sample_noise!`](@ref).
-"""
-@inline increments(int::GeometricIntegrator{<:StochasticMethod}) = increments(cache(int))

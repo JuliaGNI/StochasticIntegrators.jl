@@ -139,7 +139,7 @@ this, and computes the matching ``\Delta Z`` by quadrature over the fine subinte
 them zero would silently cost a scheme that uses them the order those terms buy.
 
 **The deterministic limit.** With zero increments an SDE is its own drift, so a stochastic method
-must reproduce the deterministic method it is built from, to the last bit. This is the sharpest
+must reproduce the deterministic method it is built from, up to round-off. This is the sharpest
 available check on the drift half of a scheme:
 
 ```@example noise
@@ -150,8 +150,14 @@ sde0 = SDEProblem(Kubo.kubo_oscillator_sde_v, Kubo.kubo_oscillator_sde_B, zerono
                   tspan, Δt, [0.5, 0.0]; parameters = Kubo.default_parameters())
 ode0 = odeproblem(; timespan = tspan, timestep = Δt)
 
-integrate(sde0, StochasticGLRK(1)).q[end] == integrate(ode0, Gauss(1)).q[end]
+maximum(abs, integrate(sde0, StochasticGLRK(1)).q[end] - integrate(ode0, Gauss(1)).q[end])
 ```
+
+The two are not bit-identical, and are not expected to be: the stochastic update adds a diffusion
+term that happens to be zero, so it accumulates its increment in a different order from the
+deterministic one and the results may differ in the last bit. Agreement at round-off is the claim;
+`==` would be asserting something about floating-point summation order rather than about the
+scheme.
 
 ## Random number generators
 

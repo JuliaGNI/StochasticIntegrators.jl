@@ -25,7 +25,9 @@ depends on `GeometricIntegratorsBase` rather than the whole of `GeometricIntegra
 
 The numerics are carried over unchanged. All six schemes reproduce the energy-error tolerances the
 previous test suite asserted, and a stochastic method driven by zero noise reproduces the
-deterministic method it is built from bit for bit.
+deterministic method it is built from to round-off — the two differ in the last bit, because the
+stochastic update accumulates a diffusion term that happens to be zero and so sums in a different
+order.
 
 ### Breaking Changes
 
@@ -195,6 +197,25 @@ deterministic method it is built from bit for bit.
 - **`truncation` was documented as returning the truncation bound ``A``.** It returns the integer
   ``K`` the bound is computed from; ``A`` needs the time step as well and comes from
   `truncation_bound`, which is now in the manual next to it.
+
+- **The manual claimed the deterministic limit was reproduced bit for bit, and printed `false`
+  underneath.** The zero-noise example compared the two solutions with `==`. They agree to
+  round-off — measured at 5.6e-17, one ulp — but never exactly, because the stochastic update
+  accumulates a diffusion term that happens to be zero and therefore sums in a different order.
+  The example now shows the difference and the claim says round-off. Nothing in CI could catch
+  this: a Documenter `@example` fails only on an exception, never on a value of `false`.
+
+- **`WERK`'s ``\hat I_{r,l}`` terms were exercised by nothing.** The multidimensional-noise tests
+  prescribed ``\Delta Z = 0``, and that block is gated twice — it vanishes for ``l = r`` *and* is
+  multiplied by ``\Delta Z`` — so any `qdiff2` whatsoever would have passed them. The same
+  full-versus-zeroed comparison the tests already used for `qdiff3` now covers it, with the
+  one-dimensional and zero-``\Delta Z`` cases asserted inert to pin down both gates.
+
+- Removed `increments`, which the rewrite orphaned: nothing called it, and it was rendered into
+  the manual. Added the docstrings `issdemethod`, `ispsdemethod`, `isspsdemethod` and `nstages`
+  were missing, corrected a docstring that described a previous version of the code rather than
+  the current one, and corrected the implementation manual's claim that a step makes a single
+  `add!` — the `b`/`b̂` pair is applied separately by design.
 
 ## Open Issues
 

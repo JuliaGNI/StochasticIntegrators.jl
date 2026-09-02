@@ -208,9 +208,9 @@ q_{n+1} = q_{n} + \Delta t \sum_{i} \alpha_{i} V_{i}
 
 This carries its own name rather than being another `update_solution!` method. It takes two
 families of diffusion stages and a ``\sqrt{\Delta t}`` term that no strong update has, so it is a
-different formula rather than an overload of the same one — and as an overload it was ambiguous
-with the SERK update above, which has the same arity and differs only in which positional slot
-holds the time step.
+different formula rather than an overload of the same one — and as an overload it would be
+ambiguous with the SERK update above, which has the same arity and differs only in which
+positional slot holds the time step.
 """
 function update_solution_weak!(q, Δq, V, B1, B2, α, β1, β2, Δt::Number, ΔW, Δy)
     @assert length(α) == length(β1) == length(β2) == length(V) == length(B1) == length(B2)

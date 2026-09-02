@@ -63,8 +63,10 @@ end
 
 @testset "$(rpad("Zero noise reproduces the deterministic method", 80))" begin
     # Driven by prescribed zero increments an SDE is its own drift, so a stochastic method must
-    # reproduce the deterministic method it is built from, to the last bit. This is the sharpest
-    # check on the drift half of a scheme.
+    # reproduce the deterministic method it is built from, up to round-off. This is the sharpest
+    # check on the drift half of a scheme. Not bit-identical, and not asserted as such: the
+    # stochastic update adds a diffusion term that happens to be zero, so it sums its increment in
+    # a different order and the two may differ in the last bit.
     local tspan = (0.0, Δt * nt)
     local nw = grid_length(tspan, Δt)
 
