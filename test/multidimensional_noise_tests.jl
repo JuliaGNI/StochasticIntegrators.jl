@@ -5,25 +5,24 @@ using Test
 
 include("utils.jl")
 
-@doc raw"""
-Kubo oscillator driven by **two** independent Wiener processes.
+# The test problem: a Kubo oscillator driven by **two** independent Wiener processes.
+#
+# Both diffusion columns are multiples of the drift, B^{·r} = ν_r v, so the solution is the
+# deterministic rotation evaluated at the random time θ(t) = t + ν₁ W¹(t) + ν₂ W²(t), and ‖q‖ is
+# conserved exactly along every path — for any increments at all, not only for a genuine Wiener
+# path. That last point is what makes the invariant usable for the weak methods, whose increments
+# are discrete random variables rather than a sampled Brownian path.
+#
+# Everything else in the suite is driven by one-dimensional noise, which leaves the branches that
+# distinguish one noise dimension from another — `qdiff3` in `WERK` and `WIRK` — never executed.
 
-Both diffusion columns are multiples of the drift, ``B^{\cdot r} = \nu_r \, v``, so the solution
-is the deterministic rotation evaluated at the random time
-``\theta(t) = t + \nu_1 W^1(t) + \nu_2 W^2(t)`` and ``\lVert q \rVert`` is conserved **exactly**
-along every path — for any increments at all, not only for a genuine Wiener path. That last point
-is what makes the invariant usable for the weak methods, whose increments are discrete random
-variables rather than a sampled Brownian path.
-
-Everything else in the suite is driven by one-dimensional noise, which leaves the branches that
-distinguish one noise dimension from another — `qdiff3` in [`WERK`](@ref) and [`WIRK`](@ref) —
-never executed.
-"""
+"Drift of the two-noise Kubo oscillator."
 function kubo2_v(v, t, q, params)
     v[1] = q[2]
     v[2] = -q[1]
 end
 
+"Diffusion of the two-noise Kubo oscillator, both columns multiples of the drift."
 function kubo2_B(B, t, q, params)
     B[1, 1] = +params.ν1 * q[2]
     B[2, 1] = -params.ν1 * q[1]

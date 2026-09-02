@@ -12,3 +12,6 @@ end
 @safetestset "Multidimensional Noise                                                          " begin
     include("multidimensional_noise_tests.jl")
 end
+@safetestset "Package Quality                                                                 " begin
+    include("aqua_tests.jl")
+end

@@ -150,43 +150,48 @@ integrators when forcing is added.
 
 Every method is used the same way:
 
-```julia
+```@example methods
 using StochasticIntegrators
 using GeometricProblems.KuboOscillator
 
-integrate(sdeproblem(),   BurrageE1())
-integrate(sdeproblem(),   StochasticGLRK(1))
-integrate(psdeproblem(),  StochasticStoermerVerlet())
-integrate(spsdeproblem(), ModifiedStochasticStoermerVerlet())
+integrate(sdeproblem(),   BurrageE1()).q[end]
+integrate(sdeproblem(),   StochasticGLRK(1)).q[end]
+integrate(psdeproblem(),  StochasticStoermerVerlet()).q[end]
+integrate(spsdeproblem(), ModifiedStochasticStoermerVerlet()).q[end]
 ```
 
 Methods are matched to problem types by dispatch. Handing a `SIRK` a `PSDEProblem` raises an
 error naming both, rather than silently doing something wrong:
 
-```julia
-integrate(psdeproblem(), StochasticGLRK(1))
-# ERROR: ArgumentError: SIRK does not support problems of type PSDE.
+```@example methods
+try
+    integrate(psdeproblem(), StochasticGLRK(1))
+catch e
+    e
+end
 ```
 
 Ensembles work without further ceremony, each member drawing its own realisation:
 
-```julia
+```@example methods
 sol = integrate(sdeensemble(), BurrageE1())
+length(sol)
 ```
 
 Keyword arguments are passed to the method, not to `integrate`:
 
-```julia
+```@example methods
 using Random
 
-integrate(prob, StochasticGLRK(2; K = 1, rng = Xoshiro(42)))
+integrate(sdeproblem(), StochasticGLRK(2; K = 1, rng = Xoshiro(42))).q[end]
 ```
 
 To build an integrator once and step it yourself, or to inspect it:
 
-```julia
+```@example methods
 int = GeometricIntegrator(sdeproblem(), BurrageE1())
 sol = integrate(int)
+sol.q[end]
 ```
 
 ## Tableaus
@@ -218,6 +223,6 @@ TableauSRKw2
 So `BurrageE1()` and `SERK(TableauBurrageE1())` are the same thing, and the second form is how to
 pass a tableau built with other parameters:
 
-```julia
+```@example methods
 SIRK(TableauStochasticDIRK(0.3); K = 1)
 ```

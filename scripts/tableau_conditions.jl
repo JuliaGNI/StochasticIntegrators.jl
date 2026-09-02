@@ -22,7 +22,7 @@
 # result stated there, which is the stronger check: the expected outcomes below, including the
 # two deliberate failures, are asserted rather than merely printed.
 #
-# Usage:  julia --project=. scripts/tableau_conditions.jl
+# Usage:  julia --project=scripts scripts/tableau_conditions.jl
 
 using Printf
 using RungeKutta: Tableau

@@ -16,11 +16,12 @@ written.
 ## [Unreleased] — targeting 0.3.0
 
 Rewritten against the current JuliaGNI ecosystem. The package had not loaded for some time: it
-imported `GeometricIntegrators.Integrators` and `GeometricIntegrators.Solutions`, submodules that
-no longer exist, and its solution layer had been superseded by `GeometricSolutions`. It now targets
-`GeometricIntegratorsBase 0.6`, `GeometricEquations 0.21`, `GeometricSolutions 0.6`,
-`GeometricBase 0.14`, `RungeKutta 0.6` and `SimpleSolvers 0.13`, and depends on
-`GeometricIntegratorsBase` rather than the whole of `GeometricIntegrators`.
+imported the submodule `GeometricIntegrators.Solutions`, which no longer exists, along with names
+from `GeometricIntegrators.Integrators` that are gone from it — `Integrator`, `Parameters`,
+`IntegratorCache`, `integrate!` — and its solution layer had been superseded by
+`GeometricSolutions`. It now targets `GeometricIntegratorsBase 0.6`, `GeometricEquations 0.21`,
+`GeometricSolutions 0.6`, `GeometricBase 0.14`, `RungeKutta 0.6` and `SimpleSolvers 0.13`, and
+depends on `GeometricIntegratorsBase` rather than the whole of `GeometricIntegrators`.
 
 The numerics are carried over unchanged. All six schemes reproduce the energy-error tolerances the
 previous test suite asserted, and a stochastic method driven by zero noise reproduces the
@@ -107,34 +108,57 @@ deterministic method it is built from bit for bit.
   they must agree exactly. Together those pin down both that the branch runs and when.
 
 - Documentation covering the theory, the noise processes, each method family and the
-  implementation.
+  implementation. **Every usage example in it is an `@example` block**, run by the documentation
+  build, so a manual that has drifted from the package fails the `Documentation` check rather than
+  being published wrong. What stays a plain `julia` block is what cannot or should not run: the
+  `Pkg.add` line in the introduction, and — throughout the implementation chapter — the sketches,
+  declaration fragments and skeletons, which contain `...`, name types the reader is to supply, or
+  restate a definition the package already makes.
+
+- `convergence` and `truncation` carry `jldoctest` examples. The pinned `Doctests` job existed
+  and had nothing to check.
+
+- `scripts/Project.toml`, so the two verification scripts can actually be run as their usage lines
+  say. `GeometricProblems` is a test-only extra of the package, so `--project=.` could not load it
+  and `scripts/convergence_order.jl` failed at its first `using`.
+
+- `scripts/step_allocations.jl`, the measurement behind the allocation table below. It asserts the
+  zero rather than only printing it.
+
+- **Aqua now runs as part of the suite.** It was not a test dependency, so type piracy,
+  ambiguities and `stale_deps` were ungated here — this branch is the first baseline. Ten checks
+  pass; `undefined_exports` is switched off, for the upstream reason under *Open Issues*.
 
 ### Performance
 
 - **Each tableau type now carries one type parameter per Butcher tableau it holds.**
   `RungeKutta.Tableau` is `Tableau{T,S,R∞,L}`, so the previous `::Tableau{T}` field annotations
   were abstract: every `tab.qdrift.a[i,j]` in a stage loop inferred as `Any` and materialised the
-  whole `SMatrix` on the heap. Measured per step, on the Kubo problems:
+  whole `SMatrix` on the heap. **Every method now takes its step without allocating.** Measured
+  per call to `integrate_step!` on the Kubo problems:
 
   | method | before | after |
   |:--|--:|--:|
-  | SIRK | 8880 B | 80 B |
-  | WIRK | 18576 B | 80 B |
-  | SIPRK | 44528 B | 80 B |
-  | SISPRK | 64944 B | 80 B |
-  | SERK | 9456 B | 2896 B |
-  | WERK | 15584 B | 6096 B |
+  | SERK | 9376 B | 0 B |
+  | SIRK | 8800 B | 0 B |
+  | WERK | 15504 B | 0 B |
+  | WIRK | 18496 B | 0 B |
+  | SIPRK | 44448 B | 0 B |
+  | SISPRK | 64864 B | 0 B |
 
   The tableaus within one method need not share a concrete type — `R∞` is `Missing` for a tableau
   built from bare coefficients and a number for one of `RungeKutta`'s named families — so a single
   shared parameter would not have been enough. The constructors infer all of them, so nothing
   changes at a call site.
 
-  The two explicit methods keep a residual cost that this does not explain and that is **not** in
-  the tableau access: `sol.q` is a `StateWithError`, and indexing one goes through `parent`, which
-  allocates 240 B per call in `GeometricBase`. Hoisting it, a function barrier around the stage
-  loop, and hoisting the coefficient arrays each left the figure unchanged, so the cause is
-  elsewhere and is left open.
+  What a full `integrate` still allocates per step is the framework's own solution handling, and
+  it is now **identical for every method** — 2194.86 B for the four SDE methods and 4536.69 B for
+  the two that carry a momentum, measured as `d(alloc)/d(nsteps)` between a 100- and a 1100-step
+  run. Subtracting the per-step figures above reproduces those two constants exactly on the
+  earlier code as well, which is what says the remaining cost is not method-dependent and not in
+  this package.
+
+  `scripts/step_allocations.jl` is the measurement, and asserts the zero.
 
 - Dropped the redundant `mul!` in the `SIRK` and `SIPRK` initial-guess predictors, which recomputed
   `B1 * Δw` and `G1 * Δw` a few lines after `ΔQ` and `ΔP` already held them, and the four cache
@@ -161,6 +185,17 @@ deterministic method it is built from bit for bit.
   describes the same dynamics, so integrating both along one sample path must give the same
   trajectory.
 
+- **`solution` was unusable after `using StochasticIntegrators`.** `GeometricBase` and
+  `GeometricSolutions` each export a `solution`, and they are two different generic functions
+  rather than one extended by the other. Both modules are re-exported, so the name resolved to
+  neither and any use of it raised `UndefVarError: solution not defined … two or more modules
+  export different bindings`. It is now bound to the `GeometricSolutions` one, which acts on the
+  `GeometricSolution` that `integrate` returns; the other is reachable as `GeometricBase.solution`.
+
+- **`truncation` was documented as returning the truncation bound ``A``.** It returns the integer
+  ``K`` the bound is computed from; ``A`` needs the time step as well and comes from
+  `truncation_bound`, which is now in the manual next to it.
+
 ## Open Issues
 
 - **`ntime(problem)` and `ntime(solution)` disagree by one for some time steps.** For the Kubo
@@ -176,5 +211,16 @@ deterministic method it is built from bit for bit.
 - `SDEEnsemble`, `PSDEEnsemble` and `SPSDEEnsemble` have no convenience constructors upstream, so
   an ensemble of stochastic problems has to be assembled by hand from the equation.
 
-- The two explicit methods still allocate per step (see *Performance*), for a reason that is not
-  the tableau field types and that this change does not identify.
+- **Aqua's `undefined_exports` fails on two names that this package does not own.**
+  `GeometricEquations` exports `AbstractEquationDELE` and `GeometricIntegratorsBase` exports
+  `initialguess!`, neither of which its own module defines; re-exporting those modules inherits
+  both. The fix belongs upstream, so `test/aqua_tests.jl` passes `undefined_exports = false` and
+  every other Aqua check runs.
+
+- **`ExplicitImports` reports 15 explicit imports and 6 qualified accesses of names that are not
+  `public` upstream** — `equations`, `name`, `noise`, `noisedims`, `tableau`, `timestep`,
+  `problem`, `method`, `solver`, `solverstate`, `components!`, `residual!`, `solversize`,
+  `IntegratorCache`, `CacheType`, `AbstractTableau`, `istrilstrict`. These are the ordinary
+  interface of the ecosystem and are used as intended; the dependencies simply do not declare
+  `public` for them yet. `check_no_stale_explicit_imports` does pass, which is the part that keeps
+  Aqua's `stale_deps` honest.

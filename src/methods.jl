@@ -45,6 +45,17 @@ and wrong for tracking a path.
 Feeding a scheme the other kind of increment produces plausible-looking numbers of the wrong
 accuracy, silently, which is why this is derived from the method rather than left as an option.
 See [`sample_noise!`](@ref) for the two laws.
+
+```jldoctest
+julia> convergence(BurrageE1())
+:strong
+
+julia> convergence(StochasticStoermerVerlet())
+:strong
+
+julia> convergence(SRKw1())
+:weak
+```
 """
 function convergence end
 
@@ -75,14 +86,24 @@ GeometricIntegratorsBase.default_extrapolation(::StochasticMethod) = NoExtrapola
 @doc raw"""
     truncation(method)
 
-The bound ``A`` at which the Wiener increments are truncated before an implicit solve, or `0` for
-no truncation.
+The integer ``K`` parameterising the truncation of the Wiener increments before an implicit solve,
+or `0` for no truncation. The bound ``A`` itself also needs the time step, and is computed by
+[`truncation_bound`](@ref) — which is internal, so reach it as
+`StochasticIntegrators.truncation_bound`.
 
 For an implicit scheme the nonlinear system need not be solvable for arbitrarily large increments,
 and a Gaussian increment is unbounded. Milstein & Tretyakov's remedy is to clip ``\Delta W`` at
-``A = \sqrt{2 K \Delta t \, \lvert \log \Delta t \rvert}`` for an integer ``K``, which leaves the
-mean-square order intact because the discarded tail is of higher order than the scheme. `K = 0`
-disables it.
+``A = \sqrt{2 K \Delta t \, \lvert \log \Delta t \rvert}``, which leaves the mean-square order
+intact because the discarded tail is of higher order than the scheme. `K = 0` disables it, and is
+the default for every method.
+
+```jldoctest
+julia> truncation(StochasticGLRK(1))
+0
+
+julia> truncation(StochasticGLRK(1; K = 2))
+2
+```
 """
 truncation(::StochasticMethod) = 0
 

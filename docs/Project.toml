@@ -1,5 +1,8 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
+GeometricProblems = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StochasticIntegrators = "62159e39-8b8b-4adf-9c3e-8dd1da10d3ac"
 
 [sources]
@@ -7,3 +10,5 @@ StochasticIntegrators = {path = ".."}
 
 [compat]
 Documenter = "1"
+GeometricIntegrators = "0.18"
+GeometricProblems = "0.9"

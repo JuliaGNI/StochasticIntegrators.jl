@@ -32,7 +32,7 @@ Pkg.add("StochasticIntegrators")
 
 ## Quick start
 
-```julia
+```@example index
 using StochasticIntegrators
 using GeometricProblems.KuboOscillator
 

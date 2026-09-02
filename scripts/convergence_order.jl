@@ -36,7 +36,10 @@
 #
 # is estimated over a sample of paths, and its order is the slope of log e against log Δt.
 #
-# Usage:  julia --project=. scripts/convergence_order.jl
+# Usage:  julia --project=scripts scripts/convergence_order.jl
+#
+# `scripts/Project.toml` is the environment: `GeometricProblems` is a test-only extra of the
+# package, so `--project=.` cannot load it.
 
 using GeometricProblems.KuboOscillator
 using Printf

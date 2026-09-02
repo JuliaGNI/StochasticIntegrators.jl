@@ -67,6 +67,7 @@ occupy the same arrays because they play the same role in the update formulas.
 
 ```@docs
 truncation
+truncation_bound
 truncate_increments!
 ```
 
@@ -76,8 +77,11 @@ solvable for arbitrarily large ones. Milstein and Tretyakov's remedy is to clip 
 intact because the discarded tail is of higher order than the scheme. It is off by default and
 enabled per method with `K`:
 
-```julia
-integrate(prob, StochasticGLRK(1; K = 1))
+```@example noise
+using StochasticIntegrators
+using GeometricProblems.KuboOscillator
+
+integrate(sdeproblem(), StochasticGLRK(1; K = 1)).q[end]
 ```
 
 ## Prescribed paths
@@ -96,9 +100,13 @@ things that cannot be done with a `WienerProcess`.
     shade above one tenth, so the requirement is **eleven** columns for a run that takes ten
     steps. Derive the length rather than assuming it:
 
-    ```julia
+    ```@example noise
+    tspan, Δt, m = (0.0, 0.1), 0.01, 1
+
     nw = Int(div(tspan[end] - tspan[begin], Δt, RoundUp))
     gp = GridProcess(randn(m, nw) .* sqrt(Δt))
+
+    nw, Int((tspan[end] - tspan[begin]) / Δt)     # eleven, against the assumed ten
     ```
 
     A surplus column is harmless — the integrator consumes one per step and ignores the rest.
@@ -109,18 +117,20 @@ random number generator.
 **Comparing methods.** Two schemes can only be compared on a common sample path; run against
 independently drawn noise they differ by the noise, not by the method.
 
-```julia
-using StochasticIntegrators
-using GeometricProblems.KuboOscillator
+```@example noise
 import GeometricProblems.KuboOscillator as Kubo
 
-nt, Δt = 100, 0.01
-ΔW  = randn(1, nt) .* sqrt(Δt)
+tspan = (0.0, Δt * 100)
+nw = Int(div(tspan[end] - tspan[begin], Δt, RoundUp))   # derived, as in the warning above
+
+ΔW = randn(1, nw) .* sqrt(Δt)
 prob = SDEProblem(Kubo.kubo_oscillator_sde_v, Kubo.kubo_oscillator_sde_B, GridProcess(ΔW),
-                  (0.0, Δt*nt), Δt, [0.5, 0.0]; parameters = Kubo.default_parameters())
+                  tspan, Δt, [0.5, 0.0]; parameters = Kubo.default_parameters())
 
 a = integrate(prob, BurrageE1())
 b = integrate(prob, StochasticGLRK(1))    # same path, so the difference is the method
+
+maximum(abs, a.q[end] - b.q[end])
 ```
 
 **Measuring strong convergence.** Coarsening one fine-grid path gives every refinement the same
@@ -132,13 +142,13 @@ them zero would silently cost a scheme that uses them the order those terms buy.
 must reproduce the deterministic method it is built from, to the last bit. This is the sharpest
 available check on the drift half of a scheme:
 
-```julia
+```@example noise
 using GeometricIntegrators: Gauss
 
-zeronoise = GridProcess(zeros(1, nt), zeros(1, nt))
+zeronoise = GridProcess(zeros(1, nw), zeros(1, nw))
 sde0 = SDEProblem(Kubo.kubo_oscillator_sde_v, Kubo.kubo_oscillator_sde_B, zeronoise,
-                  (0.0, Δt*nt), Δt, [0.5, 0.0]; parameters = Kubo.default_parameters())
-ode0 = odeproblem(; timespan = (0.0, Δt*nt), timestep = Δt)
+                  tspan, Δt, [0.5, 0.0]; parameters = Kubo.default_parameters())
+ode0 = odeproblem(; timespan = tspan, timestep = Δt)
 
 integrate(sde0, StochasticGLRK(1)).q[end] == integrate(ode0, Gauss(1)).q[end]
 ```
@@ -147,9 +157,9 @@ integrate(sde0, StochasticGLRK(1)).q[end] == integrate(ode0, Gauss(1)).q[end]
 
 Each method carries its own generator, given at construction:
 
-```julia
+```@example noise
 using Random
-integrate(prob, BurrageE1(; rng = Xoshiro(42)))
+integrate(sdeproblem(), BurrageE1(; rng = Xoshiro(42))).q[end]
 ```
 
 The default is `Random.default_rng()`. Two integrators built from the *same* method object share

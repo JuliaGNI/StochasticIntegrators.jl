@@ -27,10 +27,12 @@ Two conventions matter when reading the step implementations:
 
 * **On entry `sol.t` already holds ``t_{n+1}`` while `sol.q` still holds ``q_n``.** So `sol.q` is
   the previous solution, and the previous time is `t̄ = sol.t - timestep(int)`.
-* **`sol.q` is a `StateWithError`**, so `sol.q .+= Δq` performs compensated summation. Each
-  mathematical increment is therefore accumulated in full into a scratch vector and added once;
-  splitting one increment over several additions would compensate each piece separately for no
-  benefit.
+* **`sol.q` is a `StateWithError`**, so the increment goes in with `GeometricBase.add!`, which is
+  the operation that performs the compensated summation. `sol.q .+= Δq` does **not**: broadcasting
+  falls through to the generic `AbstractArray` path, writes through `setindex!` and never touches
+  the error field. Each mathematical increment is therefore accumulated in full into a scratch
+  vector and added once; splitting one increment over several `add!` calls would compensate each
+  piece separately for no benefit.
 
 A stochastic step adds one thing at the front: drawing the increments for the step.
 

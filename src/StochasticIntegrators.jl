@@ -9,6 +9,14 @@ using Reexport
 @reexport using GeometricIntegratorsBase
 @reexport using GeometricSolutions
 
+# `GeometricBase` and `GeometricSolutions` each export a `solution`, and the two are different
+# generic functions rather than one extended by the other. Both are re-exported above, so the
+# name would resolve to neither and `solution` would be unusable after `using
+# StochasticIntegrators`. It is bound to the `GeometricSolutions` one, which acts on the
+# `GeometricSolution` that `integrate` returns; the other, on a `State` or a `SolutionStep`, is
+# reachable as `GeometricBase.solution`.
+using GeometricSolutions: solution
+
 import GeometricBase: add!, equations, name, noise, noisedims, tableau, timestep
 
 import GeometricEquations: AbstractProblemSDE, AbstractProblemPSDE, AbstractProblemSPSDE,

@@ -7,9 +7,8 @@
 # The addition goes through `GeometricBase.add!`, not `q .+= Δq`. `sol.q` is a `StateWithError`,
 # which carries a running round-off error alongside the state, and `add!` is what performs the
 # compensated summation against it — broadcasting falls through to the generic `AbstractArray`
-# path, writes the state through `setindex!` and never touches the error field, so it silently
-# drops the compensation that the pre-rewrite `update!(sol, y, k)` performed. `add!` is also the
-# cheaper of the two: the broadcast allocated ~240 bytes per call.
+# path, writes the state through `setindex!` and never touches the error field, so it drops the
+# compensation entirely.
 #
 # The tableaus are applied twice by the callers, once with the weights `b` and once with the
 # correction weights `b̂` that `RungeKutta.Tableau` carries — that pair is a higher-precision
