@@ -211,11 +211,18 @@ order.
   full-versus-zeroed comparison the tests already used for `qdiff3` now covers it, with the
   one-dimensional and zero-``\Delta Z`` cases asserted inert to pin down both gates.
 
+- **The manual recommended `BurrageE1` for the cheap explicit strong case, which this release's
+  own correction demotes to strong order 1.0.** At four stages it is dominated in both
+  directions: `BurrageR2` reaches the same order in two, and `BurrageCL` reaches 1.5 at the same
+  four. The method table on the index page now names those two, and the `README` usage example
+  follows it.
+
 - Removed `increments`, which the rewrite orphaned: nothing called it, and it was rendered into
-  the manual. Added the docstrings `issdemethod`, `ispsdemethod`, `isspsdemethod` and `nstages`
-  were missing, corrected a docstring that described a previous version of the code rather than
-  the current one, and corrected the implementation manual's claim that a step makes a single
-  `add!` — the `b`/`b̂` pair is applied separately by design.
+  the manual. Added the docstrings that `issdemethod`, `ispsdemethod`, `isspsdemethod` and
+  `nstages` were missing, corrected a docstring that described a previous version of the code
+  rather than the current one, and corrected the implementation manual's claim about how many
+  `add!` calls a step makes — the strong update applies the `b`/`b̂` pair separately by design and
+  so runs twice, while the weak update takes only `b` and runs once.
 
 ## Open Issues
 

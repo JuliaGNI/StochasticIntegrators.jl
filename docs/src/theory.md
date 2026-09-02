@@ -186,7 +186,7 @@ everything satisfied would be reporting a bug in itself.
 
 ## Verification
 
-Two scripts in `scripts/` establish the claims made here, and are the place to look before
+Two of the scripts in `scripts/` establish the claims made here, and are the place to look before
 trusting a number:
 
 * **`tableau_conditions.jl`** evaluates both sets of conditions above on every tableau in the

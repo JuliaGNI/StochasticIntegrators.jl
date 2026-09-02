@@ -61,7 +61,8 @@ derives it from the method rather than offering it as a keyword — see [Theory]
 
 | you want | use |
 |:--|:--|
-| a cheap explicit scheme, sample paths matter | [`BurrageE1`](@ref) |
+| a cheap explicit scheme, sample paths matter | [`BurrageR2`](@ref) — two stages, strong order 1.0 |
+| the best strong order per explicit step | [`BurrageCL`](@ref) — four stages, strong order 1.5 |
 | accuracy per step, sample paths matter | [`StochasticGLRK`](@ref), [`StochasticDIRK`](@ref) |
 | a Hamiltonian system, long integration | [`StochasticStoermerVerlet`](@ref) |
 | a *forced* or damped Hamiltonian system | [`ModifiedStochasticStoermerVerlet`](@ref) |

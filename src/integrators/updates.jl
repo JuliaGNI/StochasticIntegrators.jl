@@ -10,9 +10,9 @@
 # path, writes the state through `setindex!` and never touches the error field, so it drops the
 # compensation entirely.
 #
-# The tableaus are applied twice by the callers, once with the weights `b` and once with the
-# correction weights `b̂` that `RungeKutta.Tableau` carries — that pair is a higher-precision
-# splitting of the same weights, and keeping the two additions separate is deliberate.
+# The strong update is applied twice by its callers, once with the weights `b` and once with the
+# correction weights `b̂` that `RungeKutta.Tableau` carries, and keeping the two additions separate
+# is deliberate. The weak update takes only `b` and is applied once.
 
 @doc raw"""
 Final update of a stochastic Runge-Kutta method (SIRK, WIRK):

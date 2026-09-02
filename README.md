@@ -31,7 +31,7 @@ theory is developed in
 using StochasticIntegrators
 using GeometricProblems.KuboOscillator
 
-sol = integrate(sdeproblem(), BurrageE1())          # explicit, strong
+sol = integrate(sdeproblem(), BurrageCL())          # explicit, strong
 sol = integrate(psdeproblem(), StochasticStoermerVerlet())   # symplectic
 sol = integrate(spsdeproblem(), ModifiedStochasticStoermerVerlet())  # forced systems
 sol = integrate(sdeproblem(), SRKw2())              # weak, for expectations
@@ -47,7 +47,7 @@ theory, the available methods and the implementation.
 
 ## Verification
 
-Two scripts in `scripts/` establish the claims the package makes, and are worth running before
+Three scripts in `scripts/` establish the claims the package makes, and are worth running before
 trusting a result:
 
 - `tableau_conditions.jl` checks every tableau against the Lagrange-d'Alembert conditions and the
@@ -55,6 +55,8 @@ trusting a result:
   — including the two that deliberately fail one set.
 - `convergence_order.jl` measures the mean-square convergence order on the Kubo oscillator against
   its closed-form solution.
+- `step_allocations.jl` measures the per-step allocations of all six families, and asserts that
+  `integrate_step!` allocates nothing.
 
 ## Development
 

@@ -32,9 +32,11 @@ Two conventions matter when reading the step implementations:
   falls through to the generic `AbstractArray` path, writes through `setindex!` and never touches
   the error field. Each mathematical increment is therefore accumulated in full into a scratch
   vector before it is added, rather than added term by term; splitting one increment over several
-  `add!` calls would compensate each piece separately for no benefit. A step still makes more than
-  one `add!` — the weights `b` and the correction weights `b̂` that `RungeKutta.Tableau` carries are
-  applied separately, which is a higher-precision splitting rather than one increment broken up.
+  `add!` calls would compensate each piece separately for no benefit. Where a step does make more
+  than one `add!`, that is not what is happening: the strong update is applied twice, once with
+  the weights `b` and once with the correction weights `b̂` that `RungeKutta.Tableau` carries —
+  two separate increments, not one broken up. The weak update takes only `b`, so a
+  [`WERK`](@ref) step makes exactly one.
 
 A stochastic step adds one thing at the front: drawing the increments for the step.
 
@@ -154,10 +156,10 @@ update_solution_weak!
 These carry the numerical core of every scheme and are shared between families — [`WIRK`](@ref)
 uses the same final update as [`SIRK`](@ref), for instance. The weak update carries its own name
 because it is a different formula rather than an overload: it takes two families of diffusion
-stages and a `√Δt` term that no strong update has. Each is called twice by its caller,
-once with the tableau weights `b` and once with the correction weights `b̂` that
-`RungeKutta.Tableau` carries; that pair is a higher-precision splitting of the same weights and
-keeping the two additions separate is deliberate.
+stages and a `√Δt` term that no strong update has. `update_solution!` is called twice by its
+caller, once with the tableau weights `b` and once with the correction weights `b̂` that
+`RungeKutta.Tableau` carries, and keeping those two additions separate is deliberate.
+`update_solution_weak!` is called once, with `b` only: [`WERK`](@ref) has no `b̂` pass.
 
 ## Upstream requirements
 
