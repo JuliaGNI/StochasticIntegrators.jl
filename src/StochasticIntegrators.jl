@@ -1,7 +1,7 @@
 module StochasticIntegrators
 
 using LinearAlgebra: dot, mul!
-using Random: Random, AbstractRNG
+using Random: Random
 using Reexport
 
 @reexport using GeometricBase
@@ -15,15 +15,13 @@ import GeometricEquations: AbstractProblemSDE, AbstractProblemPSDE, AbstractProb
                            AbstractStochasticProcess, WienerProcess, GridProcess
 
 import GeometricIntegratorsBase: GeometricIntegrator, GeometricMethod,
-                                 Cache, CacheType, CacheDict, IntegratorCache,
+                                 Cache, CacheType, IntegratorCache,
                                  cache, nlsolution, solver, solverstate,
                                  problem, method, equations, initial_conditions,
-                                 integrate, integrate!, integrate_step!,
-                                 components!, residual!, update!, reset!,
-                                 initial_guess!, solversize, default_solver, default_iguess,
-                                 initmethod, internal_variables, check_solver_status,
+                                 integrate_step!, components!, residual!, update!,
+                                 solversize, default_solver, check_solver_status,
                                  default_extrapolation, NoExtrapolation,
-                                 isexplicit, isimplicit, issymmetric, issymplectic
+                                 isexplicit, isimplicit, issymplectic
 
 import RungeKutta: AbstractTableau, Tableau, TableauGauss,
                    TableauLobattoIIIA, TableauLobattoIIIB, TableauLobattoIIID,
