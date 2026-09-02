@@ -96,10 +96,59 @@ deterministic method it is built from bit for bit.
 - `scripts/convergence_order.jl` measures the mean-square order on the Kubo oscillator against its
   closed-form solution along a prescribed path.
 
+- `test/multidimensional_noise_tests.jl` covers the case of more than one driving Wiener process,
+  which nothing else in the suite reaches. The branches that distinguish one noise dimension from
+  another — the `qdiff3` block of `WERK` and `WIRK` — were previously never executed.
+
+  Running a weak method on a two-dimensional problem exercises that branch, but on its own would
+  not show that it *does* anything: a scheme ignoring `qdiff3` would still produce finite,
+  energy-conserving output. So each method is run twice on one prescribed path, once with its own
+  tableau and once with `qdiff3` zeroed. With two noise dimensions the two must disagree; with one
+  they must agree exactly. Together those pin down both that the branch runs and when.
+
 - Documentation covering the theory, the noise processes, each method family and the
   implementation.
 
+### Performance
+
+- **Each tableau type now carries one type parameter per Butcher tableau it holds.**
+  `RungeKutta.Tableau` is `Tableau{T,S,R∞,L}`, so the previous `::Tableau{T}` field annotations
+  were abstract: every `tab.qdrift.a[i,j]` in a stage loop inferred as `Any` and materialised the
+  whole `SMatrix` on the heap. Measured per step, on the Kubo problems:
+
+  | method | before | after |
+  |:--|--:|--:|
+  | SIRK | 8880 B | 80 B |
+  | WIRK | 18576 B | 80 B |
+  | SIPRK | 44528 B | 80 B |
+  | SISPRK | 64944 B | 80 B |
+  | SERK | 9456 B | 2896 B |
+  | WERK | 15584 B | 6096 B |
+
+  The tableaus within one method need not share a concrete type — `R∞` is `Missing` for a tableau
+  built from bare coefficients and a number for one of `RungeKutta`'s named families — so a single
+  shared parameter would not have been enough. The constructors infer all of them, so nothing
+  changes at a call site.
+
+  The two explicit methods keep a residual cost that this does not explain and that is **not** in
+  the tableau access: `sol.q` is a `StateWithError`, and indexing one goes through `parent`, which
+  allocates 240 B per call in `GeometricBase`. Hoisting it, a function barrier around the stage
+  loop, and hoisting the coefficient arrays each left the figure unchanged, so the cause is
+  elsewhere and is left open.
+
+- Dropped the redundant `mul!` in the `SIRK` and `SIPRK` initial-guess predictors, which recomputed
+  `B1 * Δw` and `G1 * Δw` a few lines after `ΔQ` and `ΔP` already held them, and the four cache
+  fields that held the duplicates.
+
 ### Bug Fixes
+
+- **Compensated summation was silently dropped.** The final updates added their increment with
+  `q .+= Δq`. `sol.q` is a `StateWithError`, which carries a running round-off error beside the
+  state — but broadcasting falls through to the generic `AbstractArray` path, writes through
+  `setindex!` and never touches the error field, so no compensation happened at all. The
+  pre-rewrite `update!(sol, y, k)` did compensate, so this was a regression in the rewrite, not a
+  pre-existing gap. The updates now call `GeometricBase.add!`, which is the operation that
+  performs it.
 
 - **The SISPRK residual dropped its `f2` and `G2` terms.** Four lines in the old
   `function_stages!` continued an expression onto a new line beginning with `+`; Julia read the
@@ -127,6 +176,5 @@ deterministic method it is built from bit for bit.
 - `SDEEnsemble`, `PSDEEnsemble` and `SPSDEEnsemble` have no convenience constructors upstream, so
   an ensemble of stochastic problems has to be assembled by hand from the equation.
 
-- The `WERK` and `WIRK` off-diagonal branches — the terms that distinguish one noise dimension
-  from another — are never executed by the suite, because every problem in it is driven by a
-  one-dimensional Wiener process. A multi-dimensional test problem would be needed to cover them.
+- The two explicit methods still allocate per step (see *Performance*), for a reason that is not
+  the tableau field types and that this change does not identify.

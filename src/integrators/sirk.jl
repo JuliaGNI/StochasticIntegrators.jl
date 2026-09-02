@@ -7,16 +7,20 @@ diffusion.
 As for [`TableauSERK`](@ref) no overall order is stored, because the order of a stochastic
 Runge-Kutta method depends on the noise as well as on the coefficients. The `o` fields are the
 classical orders of the underlying deterministic schemes.
+
+Each Butcher tableau it holds gets its own type parameter, so that the fields are
+concrete: `RungeKutta.Tableau` is `Tableau{T,S,R∞,L}`, and a field declared `::Tableau{T}`
+would be abstract and make every coefficient access allocate. The constructors infer them.
 """
-struct TableauSIRK{T} <: AbstractTableau{T}
+struct TableauSIRK{T, TD <: Tableau{T}, TF <: Tableau{T}} <: AbstractTableau{T}
     name::Symbol
     s::Int
-    qdrift::Tableau{T}
-    qdiff::Tableau{T}
+    qdrift::TD
+    qdiff::TF
 
-    function TableauSIRK{T}(name, s, qdrift, qdiff) where {T}
+    function TableauSIRK{T}(name, s, qdrift::Tableau{T}, qdiff::Tableau{T}) where {T}
         @assert s == qdrift.s == qdiff.s
-        new(name, s, qdrift, qdiff)
+        new{T, typeof(qdrift), typeof(qdiff)}(name, s, qdrift, qdiff)
     end
 end
 
@@ -54,10 +58,14 @@ It defaults to `0`, no truncation.
 
 Constructed through [`StochasticGLRK`](@ref) or [`StochasticDIRK`](@ref).
 """
-struct SIRK{TT, RNG} <: SDEMethod
-    tableau::TableauSIRK{TT}
+struct SIRK{TT, TAB <: TableauSIRK{TT}, RNG} <: SDEMethod
+    tableau::TAB
     K::Int
     rng::RNG
+
+    function SIRK(tableau::TableauSIRK{TT}, K, rng) where {TT}
+        new{TT, typeof(tableau), typeof(rng)}(tableau, K, rng)
+    end
 end
 
 SIRK(tableau::TableauSIRK; K = 0, rng = Random.default_rng()) = SIRK(tableau, K, rng)

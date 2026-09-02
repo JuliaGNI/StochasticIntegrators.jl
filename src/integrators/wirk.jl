@@ -12,19 +12,26 @@ In the notation of that paper `qdrift0` ``= A^{(0)}``, `qdrift1` ``= A^{(1)}``,
 Kraus & Tyranowski, §3.4, show that the symplecticity conditions of that paper are equivalent to
 their weak Lagrange-d'Alembert conditions, so these methods remain variational integrators when a
 forcing term is added.
+
+Each Butcher tableau it holds gets its own type parameter, so that the fields are
+concrete: `RungeKutta.Tableau` is `Tableau{T,S,R∞,L}`, and a field declared `::Tableau{T}`
+would be abstract and make every coefficient access allocate. The constructors infer them.
 """
-struct TableauWIRK{T} <: AbstractTableau{T}
+struct TableauWIRK{T, T1 <: Tableau{T}, T2 <: Tableau{T}, T3 <: Tableau{T},
+    T4 <: Tableau{T}, T5 <: Tableau{T}} <: AbstractTableau{T}
     name::Symbol
     s::Int
-    qdrift0::Tableau{T}
-    qdrift1::Tableau{T}
-    qdiff0::Tableau{T}
-    qdiff1::Tableau{T}
-    qdiff3::Tableau{T}
+    qdrift0::T1
+    qdrift1::T2
+    qdiff0::T3
+    qdiff1::T4
+    qdiff3::T5
 
-    function TableauWIRK{T}(name, s, qdrift0, qdrift1, qdiff0, qdiff1, qdiff3) where {T}
+    function TableauWIRK{T}(name, s, qdrift0::Tableau{T}, qdrift1::Tableau{T},
+            qdiff0::Tableau{T}, qdiff1::Tableau{T}, qdiff3::Tableau{T}) where {T}
         @assert s == qdrift0.s == qdrift1.s == qdiff0.s == qdiff1.s == qdiff3.s
-        new(name, s, qdrift0, qdrift1, qdiff0, qdiff1, qdiff3)
+        new{T, typeof(qdrift0), typeof(qdrift1), typeof(qdiff0), typeof(qdiff1),
+            typeof(qdiff3)}(name, s, qdrift0, qdrift1, qdiff0, qdiff1, qdiff3)
     end
 end
 
@@ -61,9 +68,13 @@ method usable for ergodic averages in the first place.
 
 Constructed through [`SRKw1`](@ref) or [`SRKw2`](@ref).
 """
-struct WIRK{TT, RNG} <: SDEMethod
-    tableau::TableauWIRK{TT}
+struct WIRK{TT, TAB <: TableauWIRK{TT}, RNG} <: SDEMethod
+    tableau::TAB
     rng::RNG
+
+    function WIRK(tableau::TableauWIRK{TT}, rng) where {TT}
+        new{TT, typeof(tableau), typeof(rng)}(tableau, rng)
+    end
 end
 
 WIRK(tableau::TableauWIRK; rng = Random.default_rng()) = WIRK(tableau, rng)

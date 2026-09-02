@@ -22,25 +22,33 @@ The paper's tableau shares weight vectors: ``\alpha`` is used for both `qdrift` 
 ``\hat\alpha``, ``\hat\beta``. This is a consequence of the Lagrange-d'Alembert conditions, not a
 convention, so the constructor checks it — a tableau that violates it cannot be a variational
 integrator whatever else it satisfies.
+
+Each Butcher tableau it holds gets its own type parameter, so that the fields are
+concrete: `RungeKutta.Tableau` is `Tableau{T,S,R∞,L}`, and a field declared `::Tableau{T}`
+would be abstract and make every coefficient access allocate. The constructors infer them.
 """
-struct TableauSISPRK{T} <: AbstractTableau{T}
+struct TableauSISPRK{T, T1 <: Tableau{T}, T2 <: Tableau{T}, T3 <: Tableau{T},
+    T4 <: Tableau{T}, T5 <: Tableau{T}, T6 <: Tableau{T}} <: AbstractTableau{T}
     name::Symbol
     s::Int
-    qdrift::Tableau{T}
-    qdiff::Tableau{T}
-    pdrift1::Tableau{T}
-    pdrift2::Tableau{T}
-    pdiff1::Tableau{T}
-    pdiff2::Tableau{T}
+    qdrift::T1
+    qdiff::T2
+    pdrift1::T3
+    pdrift2::T4
+    pdiff1::T5
+    pdiff2::T6
 
-    function TableauSISPRK{T}(name, s, qdrift, qdiff, pdrift1, pdrift2,
-            pdiff1, pdiff2) where {T}
+    function TableauSISPRK{T}(name, s, qdrift::Tableau{T}, qdiff::Tableau{T},
+            pdrift1::Tableau{T}, pdrift2::Tableau{T},
+            pdiff1::Tableau{T}, pdiff2::Tableau{T}) where {T}
         @assert s == qdrift.s == qdiff.s == pdrift1.s == pdrift2.s == pdiff1.s == pdiff2.s
         @assert qdrift.b==pdrift1.b "the drift weights α must be shared by the q equation and " *
                                     "the Hamiltonian part of the p equation"
         @assert qdiff.b==pdiff1.b "the diffusion weights β must be shared by the q equation and " *
                                   "the Hamiltonian part of the p equation"
-        new(name, s, qdrift, qdiff, pdrift1, pdrift2, pdiff1, pdiff2)
+        new{T, typeof(qdrift), typeof(qdiff), typeof(pdrift1), typeof(pdrift2),
+            typeof(pdiff1), typeof(pdiff2)}(
+            name, s, qdrift, qdiff, pdrift1, pdrift2, pdiff1, pdiff2)
     end
 end
 
@@ -97,10 +105,14 @@ spurious drift.
 Constructed through [`StochasticLobattoIIIABD2`](@ref) or
 [`ModifiedStochasticStoermerVerlet`](@ref).
 """
-struct SISPRK{TT, RNG} <: SPSDEMethod
-    tableau::TableauSISPRK{TT}
+struct SISPRK{TT, TAB <: TableauSISPRK{TT}, RNG} <: SPSDEMethod
+    tableau::TAB
     K::Int
     rng::RNG
+
+    function SISPRK(tableau::TableauSISPRK{TT}, K, rng) where {TT}
+        new{TT, typeof(tableau), typeof(rng)}(tableau, K, rng)
+    end
 end
 
 SISPRK(tableau::TableauSISPRK; K = 0, rng = Random.default_rng()) = SISPRK(tableau, K, rng)

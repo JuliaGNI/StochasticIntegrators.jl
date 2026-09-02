@@ -13,16 +13,22 @@ Runge-Kutta method is not a property of the coefficients alone — it depends on
 the driving Wiener process and on whether the diffusion matrix satisfies the commutativity
 conditions. The `o` fields of the three tableaus are the *classical* orders of the underlying
 deterministic schemes and nothing more.
+
+Each Butcher tableau it holds gets its own type parameter, so that the fields are
+concrete: `RungeKutta.Tableau` is `Tableau{T,S,R∞,L}`, and a field declared `::Tableau{T}`
+would be abstract and make every coefficient access allocate. The constructors infer them.
 """
-struct TableauSERK{T} <: AbstractTableau{T}
+struct TableauSERK{T, TD <: Tableau{T}, TF <: Tableau{T}, TG <: Tableau{T}} <:
+       AbstractTableau{T}
     name::Symbol
     s::Int
 
-    qdrift::Tableau{T}
-    qdiff::Tableau{T}
-    qdiff2::Tableau{T}
+    qdrift::TD
+    qdiff::TF
+    qdiff2::TG
 
-    function TableauSERK{T}(name, qdrift, qdiff, qdiff2) where {T}
+    function TableauSERK{T}(name, qdrift::Tableau{T}, qdiff::Tableau{T},
+            qdiff2::Tableau{T}) where {T}
         @assert qdrift.s == qdiff.s == qdiff2.s
         @assert qdrift.c[1] == qdiff.c[1] == qdiff2.c[1] == 0
         @assert istrilstrict(qdrift.a)
@@ -31,7 +37,8 @@ struct TableauSERK{T} <: AbstractTableau{T}
         @assert !(qdrift.s == 1 && qdrift.a[1, 1] ≠ 0)
         @assert !(qdiff.s == 1 && qdiff.a[1, 1] ≠ 0)
         @assert !(qdiff2.s == 1 && qdiff2.a[1, 1] ≠ 0)
-        new(name, qdrift.s, qdrift, qdiff, qdiff2)
+        new{T, typeof(qdrift), typeof(qdiff), typeof(qdiff2)}(
+            name, qdrift.s, qdrift, qdiff, qdiff2)
     end
 end
 
@@ -87,9 +94,13 @@ Constructed through one of the named schemes: [`StochasticEuler`](@ref),
 [`StochasticHeun`](@ref), [`Platen`](@ref), [`BurrageR2`](@ref), [`BurrageCL`](@ref),
 [`BurrageE1`](@ref), [`BurrageG5`](@ref).
 """
-struct SERK{TT, RNG} <: SDEMethod
-    tableau::TableauSERK{TT}
+struct SERK{TT, TAB <: TableauSERK{TT}, RNG} <: SDEMethod
+    tableau::TAB
     rng::RNG
+
+    function SERK(tableau::TableauSERK{TT}, rng) where {TT}
+        new{TT, typeof(tableau), typeof(rng)}(tableau, rng)
+    end
 end
 
 SERK(tableau::TableauSERK; rng = Random.default_rng()) = SERK(tableau, rng)
@@ -148,34 +159,42 @@ function GeometricIntegratorsBase.integrate_step!(sol, history, params,
     local c = cache(int)
     local tab = tableau(int)
     local Δt = timestep(int)
+    local equ = equations(int)
 
     # on entry sol.t holds tₙ₊₁ while sol.q still holds qₙ
     local t̄ = sol.t - Δt
+
+    local adrift = tab.qdrift.a
+    local adiff = tab.qdiff.a
+    local adiff2 = tab.qdiff2.a
+    local cdrift = tab.qdrift.c
+    local diffusion2 = hasdiffusion2(tab)
+    local q̄ = parent(sol.q)
 
     for i in eachstage(method(int))
         for k in eachindex(c.Q[i])
             # contribution from the drift part
             local ydrift = zero(eltype(c.Δq))
             for j in 1:(i - 1)
-                ydrift += tab.qdrift.a[i, j] * c.V[j][k]
+                ydrift += adrift[i, j] * c.V[j][k]
             end
 
             # ΔW contribution from the diffusion part
             c.Δy .= 0
             for j in 1:(i - 1)
                 for l in eachindex(c.Δy)
-                    c.Δy[l] += tab.qdiff.a[i, j] * c.B[j][k, l]
+                    c.Δy[l] += adiff[i, j] * c.B[j][k, l]
                 end
             end
 
-            c.Q[i][k] = sol.q[k] + Δt * ydrift + dot(c.Δy, c.ΔW)
+            c.Q[i][k] = q̄[k] + Δt * ydrift + dot(c.Δy, c.ΔW)
 
             # ΔZ contribution from the diffusion part
-            if hasdiffusion2(tab)
+            if diffusion2
                 c.Δy .= 0
                 for j in 1:(i - 1)
                     for l in eachindex(c.Δy)
-                        c.Δy[l] += tab.qdiff2.a[i, j] * c.B[j][k, l]
+                        c.Δy[l] += adiff2[i, j] * c.B[j][k, l]
                     end
                 end
 
@@ -183,9 +202,9 @@ function GeometricIntegratorsBase.integrate_step!(sol, history, params,
             end
         end
 
-        local tᵢ = t̄ + Δt * tab.qdrift.c[i]
-        equations(int).v(c.V[i], tᵢ, c.Q[i], params)
-        equations(int).B(c.B[i], tᵢ, c.Q[i], params)
+        local tᵢ = t̄ + Δt * cdrift[i]
+        equ.v(c.V[i], tᵢ, c.Q[i], params)
+        equ.B(c.B[i], tᵢ, c.Q[i], params)
     end
 
     # compute the final update

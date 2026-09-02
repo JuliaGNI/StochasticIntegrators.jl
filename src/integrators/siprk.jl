@@ -12,18 +12,25 @@ is a requirement of the Lagrange-d'Alembert conditions, not a convention.
 
 As elsewhere, no overall order is stored: the order of a stochastic Runge-Kutta method depends on
 the noise as well as on the coefficients.
+
+Each Butcher tableau it holds gets its own type parameter, so that the fields are
+concrete: `RungeKutta.Tableau` is `Tableau{T,S,R∞,L}`, and a field declared `::Tableau{T}`
+would be abstract and make every coefficient access allocate. The constructors infer them.
 """
-struct TableauSIPRK{T} <: AbstractTableau{T}
+struct TableauSIPRK{T, T1 <: Tableau{T}, T2 <: Tableau{T}, T3 <: Tableau{T},
+    T4 <: Tableau{T}} <: AbstractTableau{T}
     name::Symbol
     s::Int
-    qdrift::Tableau{T}
-    qdiff::Tableau{T}
-    pdrift::Tableau{T}
-    pdiff::Tableau{T}
+    qdrift::T1
+    qdiff::T2
+    pdrift::T3
+    pdiff::T4
 
-    function TableauSIPRK{T}(name, s, qdrift, qdiff, pdrift, pdiff) where {T}
+    function TableauSIPRK{T}(name, s, qdrift::Tableau{T}, qdiff::Tableau{T},
+            pdrift::Tableau{T}, pdiff::Tableau{T}) where {T}
         @assert s == qdrift.s == qdiff.s == pdrift.s == pdiff.s
-        new(name, s, qdrift, qdiff, pdrift, pdiff)
+        new{T, typeof(qdrift), typeof(qdiff), typeof(pdrift), typeof(pdiff)}(
+            name, s, qdrift, qdiff, pdrift, pdiff)
     end
 end
 
@@ -74,10 +81,14 @@ The solve is in ``2 D S`` unknowns — the stage increments of both ``q`` and ``
 
 Constructed through [`StochasticSymplecticEuler`](@ref) or [`StochasticStoermerVerlet`](@ref).
 """
-struct SIPRK{TT, RNG} <: PSDEMethod
-    tableau::TableauSIPRK{TT}
+struct SIPRK{TT, TAB <: TableauSIPRK{TT}, RNG} <: PSDEMethod
+    tableau::TAB
     K::Int
     rng::RNG
+
+    function SIPRK(tableau::TableauSIPRK{TT}, K, rng) where {TT}
+        new{TT, typeof(tableau), typeof(rng)}(tableau, K, rng)
+    end
 end
 
 SIPRK(tableau::TableauSIPRK; K = 0, rng = Random.default_rng()) = SIPRK(tableau, K, rng)

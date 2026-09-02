@@ -16,22 +16,29 @@ Seven strictly lower triangular Butcher tableaus. In the notation of the paper,
 with weights `qdrift0.b` ``= \alpha``, `qdiff0.b` ``= \beta_1``, `qdiff3.b` ``= \beta_2`` and
 nodes `qdrift0.c`, `qdrift1.c`, `qdrift2.c` ``= c^{(0)}, c^{(1)}, c^{(2)}``. The `o` fields are
 meaningless here and set to zero.
+
+Each Butcher tableau it holds gets its own type parameter, so that the fields are
+concrete: `RungeKutta.Tableau` is `Tableau{T,S,R∞,L}`, and a field declared `::Tableau{T}`
+would be abstract and make every coefficient access allocate. The constructors infer them.
 """
-struct TableauWERK{T} <: AbstractTableau{T}
+struct TableauWERK{T, T1 <: Tableau{T}, T2 <: Tableau{T}, T3 <: Tableau{T},
+    T4 <: Tableau{T}, T5 <: Tableau{T}, T6 <: Tableau{T}, T7 <: Tableau{T}} <:
+       AbstractTableau{T}
     name::Symbol
     s::Int
 
-    qdrift0::Tableau{T}
-    qdrift1::Tableau{T}
-    qdrift2::Tableau{T}
+    qdrift0::T1
+    qdrift1::T2
+    qdrift2::T3
 
-    qdiff0::Tableau{T}
-    qdiff1::Tableau{T}
-    qdiff2::Tableau{T}
-    qdiff3::Tableau{T}
+    qdiff0::T4
+    qdiff1::T5
+    qdiff2::T6
+    qdiff3::T7
 
-    function TableauWERK{T}(name, qdrift0, qdrift1, qdrift2,
-            qdiff0, qdiff1, qdiff2, qdiff3) where {T}
+    function TableauWERK{T}(name, qdrift0::Tableau{T}, qdrift1::Tableau{T},
+            qdrift2::Tableau{T}, qdiff0::Tableau{T}, qdiff1::Tableau{T},
+            qdiff2::Tableau{T}, qdiff3::Tableau{T}) where {T}
         @assert qdrift0.s == qdrift1.s == qdrift2.s ==
                 qdiff0.s == qdiff1.s == qdiff2.s == qdiff3.s
         @assert qdrift0.c[1] == qdrift1.c[1] == qdrift2.c[1] ==
@@ -40,7 +47,9 @@ struct TableauWERK{T} <: AbstractTableau{T}
             @assert istrilstrict(tab.a)
             @assert !(tab.s == 1 && tab.a[1, 1] ≠ 0)
         end
-        new(name, qdrift0.s, qdrift0, qdrift1, qdrift2, qdiff0, qdiff1, qdiff2, qdiff3)
+        new{T, typeof(qdrift0), typeof(qdrift1), typeof(qdrift2), typeof(qdiff0),
+            typeof(qdiff1), typeof(qdiff2), typeof(qdiff3)}(
+            name, qdrift0.s, qdrift0, qdrift1, qdrift2, qdiff0, qdiff1, qdiff2, qdiff3)
     end
 end
 
@@ -79,9 +88,13 @@ columns. That is what buys second-order weak accuracy for multi-dimensional nois
 
 Constructed through [`RoesslerRS1`](@ref) or [`RoesslerRS2`](@ref).
 """
-struct WERK{TT, RNG} <: SDEMethod
-    tableau::TableauWERK{TT}
+struct WERK{TT, TAB <: TableauWERK{TT}, RNG} <: SDEMethod
+    tableau::TAB
     rng::RNG
+
+    function WERK(tableau::TableauWERK{TT}, rng) where {TT}
+        new{TT, typeof(tableau), typeof(rng)}(tableau, rng)
+    end
 end
 
 WERK(tableau::TableauWERK; rng = Random.default_rng()) = WERK(tableau, rng)
@@ -171,6 +184,7 @@ function GeometricIntegratorsBase.integrate_step!(sol, history, params,
     local Δt = timestep(int)
     local t̄ = sol.t - Δt
     local equ = equations(int)
+    local q̄ = parent(sol.q)
 
     # the first internal stages all equal the solution at the previous step
     equ.v(c.V[1], t̄, sol.q, params)
@@ -192,7 +206,7 @@ function GeometricIntegratorsBase.integrate_step!(sol, history, params,
                 end
             end
 
-            c.Q0[k] = sol.q[k] + Δt * ydrift + dot(c.Δy, c.ΔW)
+            c.Q0[k] = q̄[k] + Δt * ydrift + dot(c.Δy, c.ΔW)
         end
 
         # the internal stages H^(l)_i, one per noise dimension
@@ -214,7 +228,7 @@ function GeometricIntegratorsBase.integrate_step!(sol, history, params,
                     end
                 end
 
-                c.Q1[r][k] = sol.q[k] + Δt * ydrift + dot(c.Δy, c.ΔW)
+                c.Q1[r][k] = q̄[k] + Δt * ydrift + dot(c.Δy, c.ΔW)
             end
         end
 
@@ -240,7 +254,7 @@ function GeometricIntegratorsBase.integrate_step!(sol, history, params,
                     end
                 end
 
-                c.Q2[r][k] = sol.q[k] + Δt * ydrift + ydiff2 / sqrt(Δt)
+                c.Q2[r][k] = q̄[k] + Δt * ydrift + ydiff2 / sqrt(Δt)
             end
         end
 

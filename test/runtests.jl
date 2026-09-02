@@ -9,3 +9,6 @@ end
 @safetestset "Stochastic Integrators                                                          " begin
     include("integrators_tests.jl")
 end
+@safetestset "Multidimensional Noise                                                          " begin
+    include("multidimensional_noise_tests.jl")
+end

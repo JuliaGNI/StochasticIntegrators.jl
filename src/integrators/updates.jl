@@ -2,9 +2,14 @@
 # Final updates of the stochastic Runge-Kutta methods.
 #
 # Each of these accumulates the whole increment of a state variable into a scratch vector and adds
-# it in one go, rather than adding term by term. `sol.q` is a `StateWithError`, so the single
-# `.+=` is where compensated summation happens; splitting one mathematical increment over several
-# additions would compensate each piece separately for no benefit.
+# it in one go, rather than adding term by term.
+#
+# The addition goes through `GeometricBase.add!`, not `q .+= Δq`. `sol.q` is a `StateWithError`,
+# which carries a running round-off error alongside the state, and `add!` is what performs the
+# compensated summation against it — broadcasting falls through to the generic `AbstractArray`
+# path, writes the state through `setindex!` and never touches the error field, so it silently
+# drops the compensation that the pre-rewrite `update!(sol, y, k)` performed. `add!` is also the
+# cheaper of the two: the broadcast allocated ~240 bytes per call.
 #
 # The tableaus are applied twice by the callers, once with the weights `b` and once with the
 # correction weights `b̂` that `RungeKutta.Tableau` carries — that pair is a higher-precision
@@ -51,7 +56,7 @@ function update_solution!(q, Δq, V, B, bdrift, bdiff, Δt::Number, ΔW, Δy)
         Δq[k] += dot(Δy, ΔW)
     end
 
-    q .+= Δq
+    add!(q, Δq)
 end
 
 @doc raw"""
@@ -84,7 +89,7 @@ function update_solution!(q, Δq, V, B, bdrift, bdiff, bdiff2, Δt::Number, ΔW,
         Δq[k] = dot(Δy, ΔZ) / Δt
     end
 
-    q .+= Δq
+    add!(q, Δq)
 end
 
 @doc raw"""
@@ -135,8 +140,8 @@ function update_solution!(q, p, Δq, Δp, V, F, B, G,
         Δp[k] += dot(Δz, ΔW)
     end
 
-    q .+= Δq
-    p .+= Δp
+    add!(q, Δq)
+    add!(p, Δp)
 end
 
 @doc raw"""
@@ -187,8 +192,8 @@ function update_solution!(q, p, Δq, Δp, V, F1, F2, B, G1, G2,
         Δp[k] += dot(Δz, ΔW)
     end
 
-    q .+= Δq
-    p .+= Δp
+    add!(q, Δq)
+    add!(p, Δp)
 end
 
 @doc raw"""
@@ -247,5 +252,5 @@ function update_solution_weak!(q, Δq, V, B1, B2, α, β1, β2, Δt::Number, ΔW
         Δq[k] += sqrt(Δt) * x
     end
 
-    q .+= Δq
+    add!(q, Δq)
 end
