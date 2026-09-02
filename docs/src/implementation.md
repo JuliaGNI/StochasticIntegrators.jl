@@ -145,10 +145,13 @@ If a method needs an initial guess that depends on the increments — as [`SIRK`
 
 ```@docs
 update_solution!
+update_solution_weak!
 ```
 
 These carry the numerical core of every scheme and are shared between families — [`WIRK`](@ref)
-uses the same final update as [`SIRK`](@ref), for instance. Each is called twice by its caller,
+uses the same final update as [`SIRK`](@ref), for instance. The weak update carries its own name
+because it is a different formula rather than an overload: it takes two families of diffusion
+stages and a `√Δt` term that no strong update has. Each is called twice by its caller,
 once with the tableau weights `b` and once with the correction weights `b̂` that
 `RungeKutta.Tableau` carries; that pair is a higher-precision splitting of the same weights and
 keeping the two additions separate is deliberate.

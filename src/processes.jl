@@ -35,26 +35,51 @@ the update formulas, but ``\tilde I`` is a two-point variable, not an iterated i
 """
 function sample_noise! end
 
+# The increments are drawn in the element type of the arrays that receive them, not in the type
+# of the time step. Those need not agree — a problem's data type and its time type are separate
+# — and sampling in `typeof(Δt)` would then convert on every store. `√Δt` is likewise formed
+# once, in that same type, and `Δt^(3/2)` written as `Δt·√Δt` to keep the exponentiation off a
+# `Rational` power.
+
 function sample_noise!(ΔW, ΔZ, ::WienerProcess, ::Val{:strong}, Δt, n, rng)
+    local DT = eltype(ΔW)
+    local h = convert(DT, Δt)
+    local sqrth = sqrt(h)
+    local sqrt3 = sqrt(convert(DT, 3))
+
     for r in eachindex(ΔW, ΔZ)
-        χ = randn(rng, typeof(Δt))
-        η = randn(rng, typeof(Δt))
-        ΔW[r] = χ * sqrt(Δt)
-        ΔZ[r] = Δt^(3 // 2) / 2 * (χ + η / sqrt(3))
+        χ = randn(rng, DT)
+        η = randn(rng, DT)
+        ΔW[r] = χ * sqrth
+        ΔZ[r] = h * sqrth / 2 * (χ + η / sqrt3)
     end
     (ΔW, ΔZ)
 end
 
 function sample_noise!(ΔW, ΔZ, ::WienerProcess, ::Val{:weak}, Δt, n, rng)
+    local DT = eltype(ΔW)
+    local h = convert(DT, Δt)
+    local sqrth = sqrt(h)
+    local sqrt3h = sqrt(3h)
+
+    # The thresholds are converted once, for the same reason the square roots are hoisted:
+    # comparing a `Float32` draw against a `Rational` promotes through a widening path that
+    # allocates, where comparing against a `Float32` does not. The comparison is unaffected —
+    # `rand(rng, Float32)` returns a multiple of 2^-24 and `Float32(1//6)` has an ulp of 2^-26,
+    # so no draw can land on a threshold and the two forms cannot disagree.
+    local lo = convert(DT, 1//6)
+    local hi = convert(DT, 5//6)
+    local half = convert(DT, 1//2)
+
     for r in eachindex(ΔW, ΔZ)
-        χ = rand(rng, typeof(Δt))
-        η = rand(rng, typeof(Δt))
+        χ = rand(rng, DT)
+        η = rand(rng, DT)
 
         # Î: P(±√(3Δt)) = 1/6 each, P(0) = 2/3
-        ΔW[r] = χ < 1 // 6 ? -sqrt(3Δt) : (χ > 5 // 6 ? +sqrt(3Δt) : zero(Δt))
+        ΔW[r] = χ < lo ? -sqrt3h : (χ > hi ? +sqrt3h : zero(DT))
 
         # Ĩ: P(±√Δt) = 1/2 each
-        ΔZ[r] = η < 1 // 2 ? -sqrt(Δt) : +sqrt(Δt)
+        ΔZ[r] = η < half ? -sqrth : +sqrth
     end
     (ΔW, ΔZ)
 end

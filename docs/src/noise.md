@@ -85,6 +85,24 @@ integrate(prob, StochasticGLRK(1; K = 1))
 A `GridProcess` fixes the realisation instead of drawing it. It has four uses, and all four are
 things that cannot be done with a `WienerProcess`.
 
+!!! warning "How many increments a GridProcess needs"
+    `GeometricEquations` validates the length of a `GridProcess` when the problem is built, and
+    rejects one that is too short. The number it requires is *not* simply `(t₁ - t₀) / Δt`: it is
+    `div(t₁ - t₀, Δt, RoundUp)`, which uses exact arithmetic rather than the rounded
+    floating-point division, and the two disagree whenever the step is not exactly representable
+    in binary.
+
+    The Kubo defaults are exactly such a case. `0.1 / 0.01` evaluates to `10.0`, but `0.1` is a
+    shade above one tenth, so the requirement is **eleven** columns for a run that takes ten
+    steps. Derive the length rather than assuming it:
+
+    ```julia
+    nw = Int(div(tspan[end] - tspan[begin], Δt, RoundUp))
+    gp = GridProcess(randn(m, nw) .* sqrt(Δt))
+    ```
+
+    A surplus column is harmless — the integrator consumes one per step and ignores the rest.
+
 **Reproducibility.** The same increments give the same trajectory, whatever the state of any
 random number generator.
 
@@ -120,8 +138,9 @@ using GeometricIntegrators: Gauss
 zeronoise = GridProcess(zeros(1, nt), zeros(1, nt))
 sde0 = SDEProblem(Kubo.kubo_oscillator_sde_v, Kubo.kubo_oscillator_sde_B, zeronoise,
                   (0.0, Δt*nt), Δt, [0.5, 0.0]; parameters = Kubo.default_parameters())
+ode0 = odeproblem(; timespan = (0.0, Δt*nt), timestep = Δt)
 
-integrate(sde0, StochasticGLRK(1)).q[end] == integrate(odeproblem(), Gauss(1)).q[end]
+integrate(sde0, StochasticGLRK(1)).q[end] == integrate(ode0, Gauss(1)).q[end]
 ```
 
 ## Random number generators

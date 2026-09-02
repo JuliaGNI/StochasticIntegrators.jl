@@ -67,6 +67,15 @@ deterministic method it is built from bit for bit.
 - `K`, the Milstein-Tretyakov truncation parameter, moves from an integrator keyword to a method
   keyword: `StochasticGLRK(1; K = 1)`.
 
+### Compatibility
+
+- Floors are the versions that first carry what this package needs, not the current releases:
+  `GeometricBase 0.14.10` (`noise`, `noisedims`), `GeometricEquations 0.21.3` (the concrete noise
+  processes) and `GeometricIntegratorsBase 0.6.5` (`default_extrapolation(method)`). CI's `min`
+  matrix entry resolves exactly these, so a floor left at the major version would have tested a
+  combination that cannot work. `GeometricProblems 0.9` is bounded for the same reason — the test
+  suite needs the Kubo oscillator on a real noise process.
+
 ### New Features
 
 - Each method carries its own random number generator, settable at construction —
@@ -105,17 +114,19 @@ deterministic method it is built from bit for bit.
 
 ## Open Issues
 
-- **`BurrageE1` measures mean-square order 1.0 where its reference claims 1.5.** It carries a
-  second diffusion tableau against the iterated integrals `ΔZ`, which is what should lift it past
-  the order-1.0 ceiling. Driven by iterated integrals computed from the sample path,
-  `scripts/convergence_order.jl` measures 1.05, and its error is within a few percent of
-  `StochasticGLRK(1)` at every refinement — which says both are limited by the same term rather
-  than one being half an order better.
+- **`ntime(problem)` and `ntime(solution)` disagree by one for some time steps.** For the Kubo
+  defaults — `timespan = (0.0, 0.1)`, `timestep = 0.01` — `GeometricEquations.ntimesteps` computes
+  `div(0.1, 0.01, RoundUp) = 11` while the run takes ten steps and ends correctly at `t = 0.1`,
+  so `ntime(problem) == 11` and `ntime(solution) == 10`. `0.1 / 0.01` is exactly `10.0` in
+  floating point; `div(…, RoundUp)` uses the exact values, and `0.1` is a shade above one tenth.
 
-  This is not a regression: the arithmetic of the `ΔZ` terms is carried over unchanged and the
-  tableau coefficients are untouched. It is either a property of this test problem that the
-  published claim does not cover, or a defect predating this work. `BurrageCL` and `BurrageG5`
-  carry the same terms and are equally unverified.
+  This is upstream and predates the noise work, but `GridProcess` is what exposes it: a process is
+  validated against `ntimesteps`, so it must carry eleven increments for a ten-step run. The tests
+  and `docs/src/noise.md` derive the length the same way rather than assuming `(t₁ - t₀) / Δt`.
 
 - `SDEEnsemble`, `PSDEEnsemble` and `SPSDEEnsemble` have no convenience constructors upstream, so
   an ensemble of stochastic problems has to be assembled by hand from the equation.
+
+- The `WERK` and `WIRK` off-diagonal branches — the terms that distinguish one noise dimension
+  from another — are never executed by the suite, because every problem in it is driven by a
+  one-dimensional Wiener process. A multi-dimensional test problem would be needed to cover them.

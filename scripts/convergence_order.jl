@@ -127,7 +127,7 @@ function mean_square_error(method_builder, problem_builder, endpoint, nsteps::In
         sol = integrate(problem_builder(gp, Δt), method_builder())
         q, p = endpoint(sol)
 
-        qex, pex = exact_solution(T_FINAL, W_T, Q0[begin], P0[begin], PARAMS)
+        qex, pex = exact_solution(T_FINAL, W_T, Q0[begin], P0[begin], 0.0, PARAMS)
         errs[k] = (q - qex)^2 + (p - pex)^2
     end
 
@@ -167,56 +167,58 @@ function run(name, builder, problem_builder, endpoint)
     (order, errors)
 end
 
+# (name, method, problem builder, endpoint accessor, expected order)
+#
+# The expected orders are the ones the tableau docstrings claim. Note that `BurrageE1` and
+# `BurrageCL` both carry the ΔZ tableau but are of different order — 1.0 and 1.5 — so the pair
+# checks two things at once: that the ΔZ terms are wired up at all (without them `BurrageCL` drops
+# to 1.0), and that carrying them is not by itself what produces the higher order.
 const METHODS = [
-    ("StochasticGLRK(1)", () -> StochasticGLRK(1), sde_problem, sde_endpoint),
-    ("StochasticDIRK(0.5)", () -> StochasticDIRK(0.5), sde_problem, sde_endpoint),
-    ("BurrageE1", () -> BurrageE1(), sde_problem, sde_endpoint),
+    ("StochasticGLRK(1)", () -> StochasticGLRK(1), sde_problem, sde_endpoint, 1.0),
+    ("StochasticDIRK(0.5)", () -> StochasticDIRK(0.5), sde_problem, sde_endpoint, 1.0),
+    ("BurrageE1", () -> BurrageE1(), sde_problem, sde_endpoint, 1.0),
+    ("BurrageCL", () -> BurrageCL(), sde_problem, sde_endpoint, 1.5),
     ("StochasticStoermerVerlet", () -> StochasticStoermerVerlet(), psde_problem,
-        psde_endpoint)
+        psde_endpoint, 1.0)
 ]
 
 function main()
     results = Dict{String, Tuple{Float64, Vector{Float64}}}()
 
-    for (name, builder, pbuilder, endpoint) in METHODS
+    for (name, builder, pbuilder, endpoint, _) in METHODS
         results[name] = run(name, builder, pbuilder, endpoint)
     end
 
     println("\n", "="^78, "\n")
 
     @testset "Mean-square convergence order on the Kubo oscillator" begin
-        for (name, _, _, _) in METHODS
+        for (name, _, _, _, expected) in METHODS
             order, errors = results[name]
             @testset "$name" begin
-                # Order 1.0 is what the theorem gives for one-dimensional (hence commutative)
-                # noise. The band is wide enough to absorb the Monte-Carlo error of a 400-path
-                # sample and narrow enough to separate 1.0 from 0.5, which is the distinction
-                # that matters.
-                @test 0.85 < order < 1.25
+                # Wide enough to absorb the Monte-Carlo error of a 400-path sample and to
+                # tolerate the pre-asymptotic behaviour noted below, narrow enough to separate
+                # the orders that are actually distinct here: 0.5 from 1.0 from 1.5.
+                @test expected - 0.2 < order < expected + 0.4
 
                 # and the error must actually decrease under refinement
                 @test issorted(errors; rev = true)
             end
         end
-    end
 
-    #
-    # An open question, recorded rather than asserted.
-    #
-    # `BurrageE1` carries a second diffusion tableau against ΔZ, and its docstring — following
-    # Burrage & Burrage (2000) — claims strong order 1.5 for one-dimensional Brownian motion.
-    # Measured here with iterated integrals formed from the driving path it comes out at ≈ 1.05,
-    # and its error is within a few percent of `StochasticGLRK(1)` at every refinement, which
-    # says both are limited by the same O(Δt) term rather than that one is a half-order better.
-    #
-    # This is not a regression introduced by the rewrite: the arithmetic of the ΔZ terms is
-    # carried over unchanged from the previous implementation, and the tableau coefficients are
-    # untouched. It is either a property of this test problem that the published claim does not
-    # cover, or a defect in the ΔZ terms that predates this work. It is left as an open issue in
-    # CHANGELOG.md rather than papered over with a tolerance that would accept either answer.
-    #
-    println("\nNote: BurrageE1 measures order ", @sprintf("%.3f", results["BurrageE1"][1]),
-        " against a documented claim of 1.5 — see CHANGELOG.md, Open Issues.")
+        # `BurrageCL` is the only check on the ΔZ terms: it is the one method here whose order
+        # depends on them. Dropping them takes it from 1.5 to 1.0, so this assertion — and not
+        # the energy tests, which never look at ΔZ — is what would catch that half of
+        # `update_solution!` and `sample_noise!` being wrong.
+        #
+        # The gap is asserted rather than `BurrageCL`'s slope on its own because it is the robust
+        # statement of the two. `BurrageCL`'s local orders are not settled over this range — they
+        # run 1.15, 1.12, 1.36, 3.54, the last refinement dropping the error by 11.6× where order
+        # 1.5 would give 2.8×. That is the signature of the drift and diffusion error terms
+        # cancelling near this step size rather than of a higher order, and it inflates the
+        # fitted slope to ≈ 1.68. Reading a precise order off these five points would be
+        # over-reading them; that `BurrageCL` is clearly better than `BurrageE1` is not.
+        @test results["BurrageCL"][1] > results["BurrageE1"][1] + 0.25
+    end
 end
 
 main()

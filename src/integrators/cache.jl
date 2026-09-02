@@ -49,10 +49,10 @@ function sample_noise!(int::GeometricIntegrator{<:StochasticMethod}, sol)
     c
 end
 
-@doc raw"""
-    noise_increments(int, ST)
-
-The increments of the current step, for use inside code specialised on the solver's element type
-`ST`. Always the real-valued ones from `cache(int)`; see [`sample_noise!`](@ref).
 """
-@inline noise_increments(int::GeometricIntegrator{<:StochasticMethod}) = increments(cache(int))
+    increments(int)
+
+The increments of the current step, read from the cache belonging to the problem's own data type
+whatever element type the surrounding code is specialised on. See [`sample_noise!`](@ref).
+"""
+@inline increments(int::GeometricIntegrator{<:StochasticMethod}) = increments(cache(int))

@@ -9,19 +9,22 @@ using Reexport
 @reexport using GeometricIntegratorsBase
 @reexport using GeometricSolutions
 
-import GeometricBase: name, tableau, timestep, noise, noisedims
+import GeometricBase: equations, name, noise, noisedims, tableau, timestep
 
 import GeometricEquations: AbstractProblemSDE, AbstractProblemPSDE, AbstractProblemSPSDE,
-                           AbstractStochasticProcess, WienerProcess, GridProcess
+                           AbstractStochasticProcess, WienerProcess, GridProcess,
+                           initial_conditions
+
+import GeometricSolutions: initialtime
 
 import GeometricIntegratorsBase: GeometricIntegrator, GeometricMethod,
-                                 Cache, CacheType, IntegratorCache,
+                                 Cache, IntegratorCache,
                                  cache, nlsolution, solver, solverstate,
-                                 problem, method, equations, initial_conditions,
+                                 problem, method,
                                  integrate_step!, components!, residual!, update!,
-                                 solversize, default_solver, check_solver_status,
+                                 default_solver, check_solver_status,
                                  default_extrapolation, NoExtrapolation,
-                                 isexplicit, isimplicit, issymplectic
+                                 isexplicit, isimplicit
 
 import RungeKutta: AbstractTableau, Tableau, TableauGauss,
                    TableauLobattoIIIA, TableauLobattoIIIB, TableauLobattoIIID,

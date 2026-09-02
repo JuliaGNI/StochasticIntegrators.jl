@@ -15,15 +15,25 @@ RungeKutta = "fb486d5c-30a0-4a8a-8415-a8b4ace5a6f7"
 SimpleSolvers = "36b790f5-6434-4fbe-b711-1f64a1e2f6a2"
 
 [compat]
-GeometricBase = "0.14"
-GeometricEquations = "0.21"
-GeometricIntegratorsBase = "0.6"
+# The floors are the versions that first carry what this package needs, not the current
+# releases: `noise`/`noisedims` (GeometricBase 0.14.10), the concrete noise processes
+# (GeometricEquations 0.21.3) and `default_extrapolation(method)` (GeometricIntegratorsBase
+# 0.6.5). CI's `min` matrix entry resolves exactly these, so a floor left at the major
+# version would test a combination that cannot work.
+GeometricBase = "0.14.10"
+GeometricEquations = "0.21.3"
+GeometricIntegrators = "0.18"
+GeometricIntegratorsBase = "0.6.5"
+GeometricProblems = "0.9"
 GeometricSolutions = "0.6"
 LinearAlgebra = "1"
 Random = "1"
 Reexport = "1"
 RungeKutta = "0.6"
+SafeTestsets = "0.1"
 SimpleSolvers = "0.13"
+Statistics = "1"
+Test = "1"
 julia = "1.10"
 
 [extras]

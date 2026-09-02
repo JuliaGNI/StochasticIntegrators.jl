@@ -76,7 +76,7 @@ Cache of a stochastic implicit Runge-Kutta method.
 * `ΔW`, `ΔZ`: increments of the driving process for the current step
 * `Δq`, `Δy`: scratch for the final update
 * `Q`, `V`, `B`, `Y`: internal stages, drift, diffusion and stage increments
-* `ΔQ`, `Y1`, `Y2`, `V1`, `V2`, `B1`, `B2`, `Δw`: scratch of the initial-guess predictor
+* `ΔQ`, `Y2`, `V1`, `V2`, `B1`, `B2`, `Δw`: scratch of the initial-guess predictor
 """
 struct SIRKCache{DT, D, M, S} <: SDEIntegratorCache{DT}
     x::Vector{DT}
@@ -92,7 +92,6 @@ struct SIRKCache{DT, D, M, S} <: SDEIntegratorCache{DT}
     Y::Vector{Vector{DT}}
 
     ΔQ::Vector{DT}
-    Y1::Vector{DT}
     Y2::Vector{DT}
     V1::Vector{DT}
     V2::Vector{DT}
@@ -107,7 +106,7 @@ struct SIRKCache{DT, D, M, S} <: SDEIntegratorCache{DT}
             create_internal_stage_vector(DT, D, S),
             create_internal_stage_matrix(DT, D, M, S),
             create_internal_stage_vector(DT, D, S),
-            zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D),
+            zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D),
             zeros(DT, D, M), zeros(DT, D, M), zeros(DT, M))
     end
 end
@@ -174,12 +173,12 @@ function stage_initial_guess!(sol, history, params,
         equations(int).v(c.V2, t2, c.Q[i], params)
         equations(int).B(c.B2, t2, c.Q[i], params)
 
-        mul!(c.Y1, c.B1, c.Δw)
+        # ΔQ already holds B1 * Δw from above — B1 and Δw are untouched in between
         mul!(c.Y2, c.B2, c.Δw)
 
         for j in 1:D
             c.x[(i - 1) * D + j] = Δt_local * (1 // 4 * c.V1[j] + 3 // 4 * c.V2[j]) +
-                                   1 // 4 * c.Y1[j] + 3 // 4 * c.Y2[j]
+                                   1 // 4 * c.ΔQ[j] + 3 // 4 * c.Y2[j]
         end
     end
 end
@@ -233,7 +232,7 @@ function GeometricIntegratorsBase.residual!(b::AbstractVector{ST}, sol, params,
             for j in 1:S
                 y1 += tab.qdrift.a[i, j] * c.V[j][k] * Δt
                 y2 += tab.qdrift.â[i, j] * c.V[j][k] * Δt
-                for l in 1:length(ΔW)
+                for l in eachindex(ΔW)
                     y3 += tab.qdiff.a[i, j] * c.B[j][k, l] * ΔW[l]
                     y4 += tab.qdiff.â[i, j] * c.B[j][k, l] * ΔW[l]
                 end

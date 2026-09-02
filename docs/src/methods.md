@@ -8,14 +8,20 @@ Six families of stochastic Runge-Kutta methods, distinguished along three axes: 
 they apply to, whether they are explicit or implicit, and whether they converge in the strong or
 the weak sense.
 
-| family | problem | solve | convergence | structure |
+| family | problem | solve | convergence | structure of the schemes provided |
 |:--|:--|:--|:--|:--|
 | [`SERK`](@ref) | `SDEProblem` | explicit | strong | — |
 | [`SIRK`](@ref) | `SDEProblem` | implicit | strong | symplectic |
 | [`WERK`](@ref) | `SDEProblem` | explicit | weak | — |
 | [`WIRK`](@ref) | `SDEProblem` | implicit | weak | symplectic |
 | [`SIPRK`](@ref) | `PSDEProblem` | implicit | strong | symplectic |
-| [`SISPRK`](@ref) | `SPSDEProblem` | implicit | strong | Lagrange-d'Alembert |
+| [`SISPRK`](@ref) | `SPSDEProblem` | implicit | strong | Lagrange-d'Alembert, except `StochasticLobattoIIIABD2` |
+
+The last column is a property of the **coefficients**, not of the family: each of these types
+accepts any tableau of its kind, and one that violates the conditions of [Theory](@ref) is not
+symplectic whatever its type says. That is why `issymplectic` returns `missing` rather than
+`true` — the claim belongs to the named schemes, and `scripts/tableau_conditions.jl` is what
+establishes it for each of them.
 
 Each family has a concrete type carrying a tableau and a random number generator, and a set of
 named constructors for the individual schemes. `BurrageE1()` *is* a `SERK`; there is no separate
@@ -55,9 +61,12 @@ BurrageE1
 BurrageG5
 ```
 
-[`BurrageE1`](@ref) and [`BurrageG5`](@ref) carry a second diffusion tableau applied to the
-iterated integrals ``\Delta Z``, which is what lets them exceed the mean-square order 1.0 ceiling
-that schemes using only ``\Delta W`` are subject to.
+[`BurrageCL`](@ref), [`BurrageE1`](@ref) and [`BurrageG5`](@ref) carry a second diffusion tableau
+applied to the iterated integrals ``\Delta Z``. Those terms are *necessary* to exceed the
+mean-square order 1.0 ceiling that schemes built from ``\Delta W`` alone are subject to, but not
+sufficient on their own: `BurrageCL` and `BurrageG5` reach order 1.5, while `BurrageE1` carries
+the same terms and is of order 1.0. `scripts/convergence_order.jl` measures both, and the gap
+between them is the only check in the package on the ``\Delta Z`` code path.
 
 ## Implicit strong methods
 

@@ -37,7 +37,7 @@ using StochasticIntegrators
 using GeometricProblems.KuboOscillator
 
 prob = sdeproblem()                       # a Kubo oscillator driven by 1-d noise
-sol  = integrate(prob, BurrageE1())       # explicit, strong order 1.5
+sol  = integrate(prob, BurrageE1())       # explicit, strong
 
 sol.q[end]
 ```

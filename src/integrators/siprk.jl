@@ -86,7 +86,12 @@ convergence(::SIPRK) = :strong
 truncation(method::SIPRK) = method.K
 GeometricIntegratorsBase.isexplicit(::SIPRK) = false
 GeometricIntegratorsBase.isimplicit(::SIPRK) = true
-GeometricIntegratorsBase.issymplectic(::SIPRK) = true
+
+# `issymplectic` is deliberately left at its `missing` default. Whether a partitioned method is
+# symplectic is a property of its coefficients, not of the family: `SIPRK` accepts any
+# `TableauSIPRK`, and one that violates the Lagrange-d'Alembert conditions is not symplectic.
+# The named schemes here do satisfy them, and `scripts/tableau_conditions.jl` is what establishes
+# that — a blanket `true` would claim it for tableaus nobody has checked.
 
 "Cache of a stochastic implicit partitioned Runge-Kutta method."
 struct SIPRKCache{DT, D, M, S} <: PSDEIntegratorCache{DT}
@@ -110,9 +115,7 @@ struct SIPRKCache{DT, D, M, S} <: PSDEIntegratorCache{DT}
 
     ΔQ::Vector{DT}
     ΔP::Vector{DT}
-    Y1::Vector{DT}
     Y2::Vector{DT}
-    Z1::Vector{DT}
     Z2::Vector{DT}
     V1::Vector{DT}
     V2::Vector{DT}
@@ -136,8 +139,9 @@ struct SIPRKCache{DT, D, M, S} <: PSDEIntegratorCache{DT}
             create_internal_stage_matrix(DT, D, M, S),
             create_internal_stage_vector(DT, D, S),
             create_internal_stage_vector(DT, D, S),
-            zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D),
-            zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D),
+            # ΔQ, ΔP, Y2, Z2, V1, V2, F1, F2
+            zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D),
+            zeros(DT, D), zeros(DT, D), zeros(DT, D), zeros(DT, D),
             zeros(DT, D, M), zeros(DT, D, M), zeros(DT, D, M), zeros(DT, D, M),
             zeros(DT, M))
     end
@@ -205,20 +209,19 @@ function stage_initial_guess!(sol, history, params,
         equ.f(c.F2, t2, c.Q[i], c.P[i], params)
         equ.G(c.G2, t2, c.Q[i], c.P[i], params)
 
-        mul!(c.Y1, c.B1, c.Δw)
+        # ΔQ and ΔP already hold B1 * Δw and G1 * Δw from above — B1, G1 and Δw are untouched
         mul!(c.Y2, c.B2, c.Δw)
         for j in 1:D
             c.x[(i - 1) * D + j] = Δt_local * (1 // 4 * c.V1[j] + 3 // 4 * c.V2[j]) +
-                                   1 // 4 * c.Y1[j] + 3 // 4 * c.Y2[j]
+                                   1 // 4 * c.ΔQ[j] + 3 // 4 * c.Y2[j]
         end
 
         if samenodes
-            mul!(c.Z1, c.G1, c.Δw)
             mul!(c.Z2, c.G2, c.Δw)
             for j in 1:D
                 c.x[(S + i - 1) * D + j] = Δt_local *
                                            (1 // 4 * c.F1[j] + 3 // 4 * c.F2[j]) +
-                                           1 // 4 * c.Z1[j] + 3 // 4 * c.Z2[j]
+                                           1 // 4 * c.ΔP[j] + 3 // 4 * c.Z2[j]
             end
         end
     end
@@ -241,12 +244,12 @@ function stage_initial_guess!(sol, history, params,
             equ.f(c.F2, t2, c.Q[i], c.P[i], params)
             equ.G(c.G2, t2, c.Q[i], c.P[i], params)
 
-            mul!(c.Z1, c.G1, c.Δw)
+            # ΔP already holds G1 * Δw from above
             mul!(c.Z2, c.G2, c.Δw)
             for j in 1:D
                 c.x[(S + i - 1) * D + j] = Δt_local *
                                            (1 // 4 * c.F1[j] + 3 // 4 * c.F2[j]) +
-                                           1 // 4 * c.Z1[j] + 3 // 4 * c.Z2[j]
+                                           1 // 4 * c.ΔP[j] + 3 // 4 * c.Z2[j]
             end
         end
     end

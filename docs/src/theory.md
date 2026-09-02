@@ -89,9 +89,12 @@ Every method in this package uses only the increments
 ``\Delta W^r = \int_{t_n}^{t_{n+1}} dW^r``, and possibly the iterated integrals
 ``\Delta Z^r = \int_{t_n}^{t_{n+1}} \int_{t_n}^{t} dW^r(\xi) \, dt``. A scheme built from
 ``\Delta W`` alone cannot exceed **mean-square order 1.0**, however many stages it has — the
-missing information is in the higher multiple Stratonovich integrals, not in the tableau. Adding
-the ``\Delta Z`` terms is what lifts a scheme past that ceiling, and among the methods here only
-the explicit Burrage schemes carry them.
+missing information is in the higher multiple Stratonovich integrals, not in the tableau.
+
+Carrying the ``\Delta Z`` terms is therefore necessary to pass that ceiling, but it is not
+sufficient. Of the methods here only [`BurrageCL`](@ref), [`BurrageE1`](@ref) and
+[`BurrageG5`](@ref) carry them, and of those three only `BurrageCL` and `BurrageG5` reach order
+1.5 — `BurrageE1` uses the same terms and remains of order 1.0.
 
 Order 1.0 further requires the noise to be **commutative**. For a one-dimensional Wiener process
 commutativity is automatic; for multi-dimensional non-commutative noise the same schemes drop to

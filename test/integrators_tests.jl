@@ -65,9 +65,12 @@ end
     # Driven by prescribed zero increments an SDE is its own drift, so a stochastic method must
     # reproduce the deterministic method it is built from, to the last bit. This is the sharpest
     # check on the drift half of a scheme.
-    zeronoise = GridProcess(zeros(1, nt), zeros(1, nt))
+    local tspan = (0.0, Δt * nt)
+    local nw = grid_length(tspan, Δt)
+
+    zeronoise = GridProcess(zeros(1, nw), zeros(1, nw))
     sde0 = SDEProblem(Kubo.kubo_oscillator_sde_v, Kubo.kubo_oscillator_sde_B, zeronoise,
-        (0.0, Δt * nt), Δt, Kubo.q_init_A; parameters = Kubo.default_parameters())
+        tspan, Δt, Kubo.q_init_A; parameters = Kubo.default_parameters())
 
     sol_sto = integrate(sde0, StochasticGLRK(1))
     sol_det = integrate(odeproblem(), Gauss(1))
@@ -89,8 +92,9 @@ end
     local par = (ν = 0.5, γ = 0.5)
     local tspan = (0.0, h * nsteps)
 
-    local path = randn(Xoshiro(42), 1, nsteps) .* sqrt(h)
-    local gp = GridProcess(path, zeros(1, nsteps))
+    local nw = grid_length(tspan, h)
+    local path = randn(Xoshiro(42), 1, nw) .* sqrt(h)
+    local gp = GridProcess(path, zeros(1, nw))
 
     local q₀ = [2.0]
     local p₀ = [0.0]
@@ -110,9 +114,11 @@ end
     @test split.q[end] ≈ unsplit.q[end] atol=1E-12
     @test split.p[end] ≈ unsplit.p[end] atol=1E-12
 
-    # and both track the exact solution of the damped oscillator along that same path
-    local W = cumsum(vec(path))
-    local qex, pex = exact_solution(tspan[end], W[end], q₀[begin], p₀[begin], par)
+    # and both track the exact solution of the damped oscillator along that same path.
+    # `grid_length` may allow one increment more than the run consumes, so the Wiener path is
+    # summed over the steps actually taken rather than over the whole prescribed grid.
+    local W = cumsum(vec(path))[ntime(split)]
+    local qex, pex = exact_solution(tspan[end], W, q₀[begin], p₀[begin], tspan[begin], par)
     @test split.q[end][begin]≈qex atol=1E-2
     @test split.p[end][begin]≈pex atol=1E-2
 end
@@ -120,10 +126,12 @@ end
 @testset "$(rpad("Prescribed noise is reproducible", 80))" begin
     # A GridProcess fixes the path, so two runs of the same problem must agree exactly even
     # though each method carries its own random number generator.
-    local path = randn(Xoshiro(7), 1, nt) .* sqrt(Δt)
-    local gp = GridProcess(path, zeros(1, nt))
+    local tspan = (0.0, Δt * nt)
+    local nw = grid_length(tspan, Δt)
+    local path = randn(Xoshiro(7), 1, nw) .* sqrt(Δt)
+    local gp = GridProcess(path, zeros(1, nw))
     local prob = SDEProblem(Kubo.kubo_oscillator_sde_v, Kubo.kubo_oscillator_sde_B, gp,
-        (0.0, Δt * nt), Δt, Kubo.q_init_A; parameters = Kubo.default_parameters())
+        tspan, Δt, Kubo.q_init_A; parameters = Kubo.default_parameters())
 
     @test integrate(prob, BurrageE1()).q[end] == integrate(prob, BurrageE1()).q[end]
 end

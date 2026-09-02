@@ -261,6 +261,6 @@ function GeometricIntegratorsBase.integrate_step!(sol, history, params,
     end
 
     # compute the final update
-    update_solution!(sol.q, c.Δq, c.V, c.B1, c.B2, tab.qdrift0.b, tab.qdiff0.b,
+    update_solution_weak!(sol.q, c.Δq, c.V, c.B1, c.B2, tab.qdrift0.b, tab.qdiff0.b,
         tab.qdiff3.b, Δt, c.ΔW, c.Δy)
 end

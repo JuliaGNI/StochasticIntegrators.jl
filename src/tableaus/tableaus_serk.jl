@@ -224,10 +224,13 @@ BurrageCL(; kwargs...) = SERK(TableauBurrageCL(); kwargs...)
 Four-stage explicit E1 method of Burrage & Burrage, *Order conditions for stochastic Runge-Kutta
 methods by B-series* (2000).
 
-Strong order 1.5 for a one-dimensional Wiener process. It carries a second diffusion tableau
-against the iterated integrals ``\Delta Z``, which is what lifts it past the order-1.0 ceiling that
-schemes using only ``\Delta W`` are subject to. The best-behaved of the explicit strong methods
-here, and the default choice when an implicit solve is too expensive.
+Strong order 1.0 for a one-dimensional Wiener process, and measured at 1.05 on the Kubo oscillator
+by `scripts/convergence_order.jl`.
+
+It carries a second diffusion tableau against the iterated integrals ``\Delta Z``. Those terms are
+*necessary* to exceed the order-1.0 ceiling that schemes built from ``\Delta W`` alone are subject
+to, but they are not sufficient on their own — this method uses them and is still of order 1.0,
+whereas [`BurrageCL`](@ref) and [`BurrageG5`](@ref) reach 1.5.
 """
 BurrageE1(; kwargs...) = SERK(TableauBurrageE1(); kwargs...)
 
