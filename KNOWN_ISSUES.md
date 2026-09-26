@@ -44,3 +44,26 @@
   Aqua's `stale_deps` honest.
 - kind: upstream
 - found: 2026-09-02
+
+## Found by the critics of the move
+
+### K5 · The comment in `test/quality/aqua.jl` points to a CHANGELOG section that no longer exists.
+
+- location: `test/quality/aqua.jl:8`
+- evidence: the comment reads "See `CHANGELOG.md`, *Open Issues*."; that section is now K3 of this file.
+- kind: docs
+- found: 2026-09-26
+
+### K6 · K3 names `test/aqua_tests.jl`, which does not exist.
+
+- location: `test/quality/aqua.jl:9`
+- evidence: commit 0235d3e moved the Aqua test to `test/quality/aqua.jl`; line 9 passes `undefined_exports = false`.
+- kind: docs
+- found: 2026-09-26
+
+### K7 · K4 describes an ExplicitImports check that the test suite does not run.
+
+- location: `test/`
+- evidence: `grep -rn -i explicitimports test Project.toml` prints nothing, so the claim that `check_no_stale_explicit_imports` passes is not checked.
+- kind: not verified
+- found: 2026-09-26
