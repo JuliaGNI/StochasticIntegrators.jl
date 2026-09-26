@@ -12,6 +12,16 @@ tags. It is named as a gap rather than reconstructed, because a changelog assemb
 fact loses exactly the reasoning that makes it worth keeping. `0.3.0` is the first release
 written up here.
 
+## [Unreleased] — targeting 0.3.1
+
+### Compatibility
+
+- The test dependencies are in `test/Project.toml`. `Project.toml` has no `[extras]` or
+  `[targets]`, and no compat entry for a dependency that only the tests use.
+- The suite uses the groups `core` and `slow`. `Pkg.test()` runs both;
+  `Pkg.test(test_args = ["core"])` runs one. The test files mirror `src/`.
+- The doctests run in `Pkg.test()`, in the `slow` group (`test/quality/doctests.jl`).
+
 ## [0.3.0] — 2026-09-03
 
 Rewritten against the current JuliaGNI ecosystem. The package had not loaded for some time: it

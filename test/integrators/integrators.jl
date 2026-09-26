@@ -4,9 +4,11 @@ using GeometricProblems.KuboOscillator
 using Random
 using Test
 
+Random.seed!(1234)
+
 import GeometricProblems.KuboOscillator as Kubo
 
-include("utils.jl")
+include("../helpers/utils.jl")
 
 const Δt = Kubo.Δt
 const nt = Kubo.nt
