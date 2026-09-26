@@ -6,7 +6,7 @@ using Test
 
 import GeometricProblems.KuboOscillator as Kubo
 
-include("utils.jl")
+include("../helpers/utils.jl")
 
 const Δt = Kubo.Δt
 const nt = Kubo.nt
