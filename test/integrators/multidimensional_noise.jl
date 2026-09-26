@@ -3,6 +3,8 @@ using StochasticIntegrators
 using Random
 using Test
 
+Random.seed!(1234)
+
 include("../helpers/utils.jl")
 
 # The test problem: a Kubo oscillator driven by **two** independent Wiener processes.

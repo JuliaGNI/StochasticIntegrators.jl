@@ -4,6 +4,8 @@ using GeometricProblems.KuboOscillator
 using Random
 using Test
 
+Random.seed!(1234)
+
 import GeometricProblems.KuboOscillator as Kubo
 
 include("../helpers/utils.jl")
