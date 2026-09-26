@@ -45,12 +45,12 @@
 - kind: upstream
 - found: 2026-09-02
 
-## Found by the critics of the move
+## Found when this file was split from the CHANGELOG
 
-### K5 · The comment in `test/quality/aqua.jl` points to a CHANGELOG section that no longer exists.
+### K5 · The comment in `test/quality/aqua.jl` points to a CHANGELOG section that does not exist.
 
 - location: `test/quality/aqua.jl:8`
-- evidence: the comment reads "See `CHANGELOG.md`, *Open Issues*."; that section is now K3 of this file.
+- evidence: the comment reads "See `CHANGELOG.md`, *Open Issues*."; the issue it means is K3 of this file.
 - kind: docs
 - found: 2026-09-26
 
