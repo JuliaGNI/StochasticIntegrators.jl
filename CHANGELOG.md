@@ -21,6 +21,9 @@ written up here.
 - The suite uses the groups `core` and `slow`. `Pkg.test()` runs both;
   `Pkg.test(test_args = ["core"])` runs one. The test files mirror `src/`.
 - The doctests run in `Pkg.test()`, in the `slow` group (`test/quality/doctests.jl`).
+- `test/Project.toml` no longer carries `[compat]` entries for `LinearAlgebra`, `Random` and
+  `RungeKutta`, which are dependencies of `Project.toml`. The test environment contains the
+  package, so the root's bounds apply there; a copy in `test/` could only narrow them.
 
 ## [0.3.0] — 2026-09-03
 
