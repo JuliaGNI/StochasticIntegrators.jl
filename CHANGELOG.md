@@ -23,7 +23,7 @@ written up here.
 - The doctests run in `Pkg.test()`, in the `slow` group (`test/quality/doctests.jl`).
 - `test/Project.toml` no longer carries `[compat]` entries for `LinearAlgebra`, `Random` and
   `RungeKutta`, which are dependencies of `Project.toml`. The test environment contains the
-  package, so the root's bounds apply there; a copy in `test/` could only narrow them.
+  package, so the root's bounds apply there; a copy in `test/` could only repeat or narrow them.
 
 ## [0.3.0] — 2026-09-03
 
