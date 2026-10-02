@@ -12,6 +12,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 StochasticIntegrators = {path = ".."}
 
 [compat]
-GeometricIntegratorsBase = "0.6.5"
+GeometricIntegratorsBase = "0.6.9"
 GeometricProblems = "0.9"
-RungeKutta = "0.6"
+RungeKutta = "0.6.4"
