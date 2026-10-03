@@ -12,7 +12,7 @@ tags. It is named as a gap rather than reconstructed, because a changelog assemb
 fact loses exactly the reasoning that makes it worth keeping. `0.3.0` is the first release
 written up here.
 
-## [Unreleased] — targeting 0.3.1
+## [0.3.1] — 2026-10-03
 
 ### Compatibility
 
