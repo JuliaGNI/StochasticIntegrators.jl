@@ -16,6 +16,9 @@ written up here.
 
 ### Compatibility
 
+- The floors rise to Julia 1.11, GeometricBase 0.15.0, GeometricEquations 0.21.5,
+  GeometricIntegratorsBase 0.6.9, GeometricSolutions 0.6.6, RungeKutta 0.6.4 and SimpleSolvers
+  0.14.1, because GeometricBase 0.15 declares its stubs public and requires Julia 1.11.
 - The test dependencies are in `test/Project.toml`. `Project.toml` has no `[extras]` or
   `[targets]`, and no compat entry for a dependency that only the tests use.
 - The suite uses the groups `core` and `slow`. `Pkg.test()` runs both;

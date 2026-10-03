@@ -33,11 +33,10 @@
 - kind: upstream
 - found: 2026-09-02
 
-### K4 · `ExplicitImports` reports 15 explicit imports and 6 qualified accesses of names that are not `public` upstream
+### K4 · `ExplicitImports` reports 8 explicit imports and 4 qualified accesses of names that are not `public` upstream
 
 - location: —
-- evidence: — `equations`, `name`, `noise`, `noisedims`, `tableau`, `timestep`,
-  `problem`, `method`, `solver`, `solverstate`, `components!`, `residual!`, `solversize`,
+- evidence: — `method`, `solver`, `solverstate`, `components!`, `residual!`, `solversize`,
   `IntegratorCache`, `CacheType`, `AbstractTableau`, `istrilstrict`. These are the ordinary
   interface of the ecosystem and are used as intended; the dependencies simply do not declare
   `public` for them yet. `check_no_stale_explicit_imports` does pass, which is the part that keeps
