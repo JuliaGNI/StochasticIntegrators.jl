@@ -12,6 +12,13 @@ tags. It is named as a gap rather than reconstructed, because a changelog assemb
 fact loses exactly the reasoning that makes it worth keeping. `0.3.0` is the first release
 written up here.
 
+## [Unreleased]
+
+### Changed
+
+- CI uploads coverage from the `Julia 1 - ubuntu-latest` job instead of `Julia min`, and a test
+  job saves the Julia cache only when it succeeds.
+
 ## [0.3.1] — 2026-10-03
 
 ### Compatibility
