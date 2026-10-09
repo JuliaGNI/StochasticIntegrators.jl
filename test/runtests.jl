@@ -9,6 +9,6 @@ if "core" in GROUPS
     @safetestset "Stochastic integrators" include("integrators/integrators.jl")
     @safetestset "Multidimensional noise" include("integrators/multidimensional_noise.jl")
 end
-if "slow" in GROUPS
+if "doctests" in GROUPS
     @safetestset "Doctests" include("quality/doctests.jl")
 end
