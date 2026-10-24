@@ -14,6 +14,13 @@ written up here.
 
 ## [Unreleased]
 
+### Compatibility
+
+- **Julia 1.12 is the floor** (`[compat] julia = "1.12"`, from 1.11). A breaking change under
+  this package's pre-1.0 convention: a caller on Julia 1.11 can no longer install this version.
+  Nothing in the package's code or tests changes: no workaround for the older Julia existed to
+  delete.
+
 ### Changed
 
 - CI uploads coverage from the `Julia 1 - ubuntu-latest` job instead of `Julia min`, and a test
