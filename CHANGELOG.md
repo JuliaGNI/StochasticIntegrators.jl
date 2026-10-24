@@ -12,12 +12,12 @@ tags. It is named as a gap rather than reconstructed, because a changelog assemb
 fact loses exactly the reasoning that makes it worth keeping. `0.3.0` is the first release
 written up here.
 
-## [Unreleased]
+## [0.3.2] — 2026-10-24
 
 ### Compatibility
 
-- **Julia 1.12 is the floor** (`[compat] julia = "1.12"`, from 1.11). A breaking change under
-  this package's pre-1.0 convention: a caller on Julia 1.11 can no longer install this version.
+- **Julia 1.12 is the floor** (`[compat] julia = "1.12"`, from 1.11). A patch release, because no
+  API changes: a caller on Julia 1.11 can no longer install this version.
   Nothing in the package's code or tests changes: no workaround for the older Julia existed to
   delete.
 

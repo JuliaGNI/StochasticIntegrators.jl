@@ -1,6 +1,6 @@
 name = "StochasticIntegrators"
 uuid = "62159e39-8b8b-4adf-9c3e-8dd1da10d3ac"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>", "Tomasz M. Tyranowski <tomasz.tyranowski@ipp.mpg.de>"]
 
 [deps]
