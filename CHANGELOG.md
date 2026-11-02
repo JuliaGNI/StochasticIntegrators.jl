@@ -12,6 +12,17 @@ tags. It is named as a gap rather than reconstructed, because a changelog assemb
 fact loses exactly the reasoning that makes it worth keeping. `0.3.0` is the first release
 written up here.
 
+## [Unreleased]
+
+### Compatibility
+
+- The test floors in `test/Project.toml` rise, because the CI downgrade job now resolves
+  `Project.toml` and `test/Project.toml` together at their lower bounds:
+  - GeometricIntegrators 0.18.6 (from 0.18.0) and GeometricProblems 0.9.1 (from 0.9.0): these
+    are the lowest versions that resolve with the package's own floors.
+  - Aqua 0.8.14 (from 0.8.0): on Julia 1.12 the piracy check of Aqua 0.8.13 and earlier fails
+    with `FieldError: type Core.TypeName has no field mt`. Aqua 0.8.14 reads `Core.methodtable`.
+
 ## [0.3.2] — 2026-10-24
 
 ### Compatibility

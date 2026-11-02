@@ -15,10 +15,10 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 StochasticIntegrators = {path = ".."}
 
 [compat]
-Aqua = "0.8"
+Aqua = "0.8.14"
 Documenter = "1"
-GeometricIntegrators = "0.18"
-GeometricProblems = "0.9"
+GeometricIntegrators = "0.18.6"
+GeometricProblems = "0.9.1"
 SafeTestsets = "0.1"
 Statistics = "1"
 Test = "1"
