@@ -10,5 +10,5 @@ StochasticIntegrators = {path = ".."}
 
 [compat]
 Documenter = "1"
-GeometricIntegrators = "0.18"
-GeometricProblems = "0.9"
+GeometricIntegrators = "0.18, 0.19"
+GeometricProblems = "0.10"

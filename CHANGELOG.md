@@ -17,10 +17,22 @@ written up here.
 ### Compatibility
 
 - `[compat]` admits GeometricSolutions 0.7: `"0.6.6"` → `"0.6.6, 0.7"`. The breaking change of
-  0.7, a fifth type parameter of `EnsembleSolution`, does not reach this package: the package
-  never names `EnsembleSolution`, and the tests name it only as a bare argument type.
+  0.7, a fifth type parameter of `EnsembleSolution`, does not reach this package's code: the
+  package never names `EnsembleSolution`, and the tests name it only as a bare argument type.
+  The package re-exports GeometricSolutions, however, so the new parameter reaches its users
+  when they resolve 0.7: a four-parameter spelling `EnsembleSolution{A, B, C, D}` becomes a
+  `UnionAll`, so `typeof(sol) == EnsembleSolution{A, B, C, D}` is `false` there, while
+  `sol isa EnsembleSolution{A, B, C, D}` still holds.
 - The tests run against GeometricProblems 0.10: `test/Project.toml` `"0.9.1"` → `"0.10"`. The
   tests use only `KuboOscillator`, and no test changes.
+- The tests, the docs and the scripts accept the releases that admit GeometricSolutions 0.7
+  (GeometricIntegrators 0.19.1, GeometricIntegratorsBase 0.7.1, GeometricProblems 0.10.1):
+  `test/Project.toml` GeometricIntegrators `"0.18.6"` → `"0.18.6, 0.19"`; `docs/Project.toml`
+  GeometricIntegrators `"0.18"` → `"0.18, 0.19"` and GeometricProblems `"0.9"` → `"0.10"`;
+  `scripts/Project.toml` GeometricIntegratorsBase `"0.6.9"` → `"0.6.9, 0.7"` and
+  GeometricProblems `"0.9"` → `"0.10"`. The symplectic Euler methods of this package are its own
+  stochastic tableaus, so the exchanged letters of GeometricIntegrators 0.19 do not reach them,
+  and nothing here uses `LinearWave`, the one breaking change of GeometricProblems 0.10.
 - The test floors in `test/Project.toml` rise, because the CI downgrade job now resolves
   `Project.toml` and `test/Project.toml` together at their lower bounds:
   - GeometricIntegrators 0.18.6 (from 0.18.0): the lowest version that resolves with the
