@@ -16,10 +16,15 @@ written up here.
 
 ### Compatibility
 
+- `[compat]` admits GeometricSolutions 0.7: `"0.6.6"` → `"0.6.6, 0.7"`. The breaking change of
+  0.7, a fifth type parameter of `EnsembleSolution`, does not reach this package: the package
+  never names `EnsembleSolution`, and the tests name it only as a bare argument type.
+- The tests run against GeometricProblems 0.10: `test/Project.toml` `"0.9.1"` → `"0.10"`. The
+  tests use only `KuboOscillator`, and no test changes.
 - The test floors in `test/Project.toml` rise, because the CI downgrade job now resolves
   `Project.toml` and `test/Project.toml` together at their lower bounds:
-  - GeometricIntegrators 0.18.6 (from 0.18.0) and GeometricProblems 0.9.1 (from 0.9.0): these
-    are the lowest versions that resolve with the package's own floors.
+  - GeometricIntegrators 0.18.6 (from 0.18.0): the lowest version that resolves with the
+    package's own floors.
   - Aqua 0.8.14 (from 0.8.0): on Julia 1.12 the piracy check of Aqua 0.8.13 and earlier fails
     with `FieldError: type Core.TypeName has no field mt`. Aqua 0.8.14 reads `Core.methodtable`.
 
