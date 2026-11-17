@@ -12,6 +12,26 @@ tags. It is named as a gap rather than reconstructed, because a changelog assemb
 fact loses exactly the reasoning that makes it worth keeping. `0.3.0` is the first release
 written up here.
 
+## [Unreleased]
+
+### Compatibility
+
+- The floors rise to GeometricBase 0.15.5 (from 0.15.0) and GeometricIntegratorsBase 0.7.2
+  (from 0.6.9): `"0.15.0"` → `"0.15.5"` and `"0.6.9, 0.7"` → `"0.7.2"`. These are the first
+  releases with `GeometricBase.interface_violations` and its method for `GeometricMethod`, which
+  the new test calls. GeometricIntegratorsBase 0.6 is no longer admitted.
+- The tests run against GeometricIntegrators 0.19 only: `test/Project.toml` `"0.18.6, 0.19"` →
+  `"0.19"`, because GeometricIntegrators 0.18 requires GeometricIntegratorsBase 0.6 and cannot
+  resolve with the new floor. `InteractiveUtils` is a test dependency.
+
+### Changed
+
+- `test/quality/interface.jl`, in the group `core`, checks that one instance of each method type
+  of this package (`SERK`, `SIRK`, `SIPRK`, `SISPRK`, `WERK`, `WIRK`) keeps the `AbstractMethod`
+  contract: `GeometricBase.interface_violations` returns no entry. A second check walks the
+  subtypes of `GeometricBase.AbstractMethod` and fails for a concrete method type of this package
+  that has no instance in the test.
+
 ## [0.3.3] — 2026-11-15
 
 ### Compatibility
