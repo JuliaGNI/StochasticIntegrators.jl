@@ -17,9 +17,10 @@ written up here.
 ### Compatibility
 
 - The floors rise to GeometricBase 0.15.5 (from 0.15.0) and GeometricIntegratorsBase 0.7.2
-  (from 0.6.9): `"0.15.0"` → `"0.15.5"` and `"0.6.9, 0.7"` → `"0.7.2"`. These are the first
-  releases with `GeometricBase.interface_violations` and its method for `GeometricMethod`, which
-  the new test calls. GeometricIntegratorsBase 0.6 is no longer admitted.
+  (from 0.6.9): `"0.15.0"` → `"0.15.5"` and `"0.6.9, 0.7"` → `"0.7.2"`. The new test calls
+  `GeometricBase.interface_violations`, which first appears in GeometricBase 0.15.4, and its
+  method for `GeometricMethod`, which first appears in GeometricIntegratorsBase 0.7.2. GeometricBase
+  0.15.5 is the version the test ran against. GeometricIntegratorsBase 0.6 is no longer admitted.
 - The tests run against GeometricIntegrators 0.19 only: `test/Project.toml` `"0.18.6, 0.19"` →
   `"0.19"`, because GeometricIntegrators 0.18 requires GeometricIntegratorsBase 0.6 and cannot
   resolve with the new floor. `InteractiveUtils` is a test dependency.
