@@ -1,3 +1,4 @@
+using GeometricBase: GeometricBase
 using InteractiveUtils: subtypes
 using StochasticIntegrators
 using Test

@@ -31,7 +31,8 @@ written up here.
   of this package (`SERK`, `SIRK`, `SIPRK`, `SISPRK`, `WERK`, `WIRK`) keeps the `AbstractMethod`
   contract: `GeometricBase.interface_violations` returns no entry. A second check walks the
   subtypes of `GeometricBase.AbstractMethod` and fails for a concrete method type of this package
-  that has no instance in the test.
+  that has no instance in the test. GeometricBase joins the `[deps]` of `test/Project.toml`, so
+  the test imports it directly.
 
 ## [0.3.3] — 2026-11-15
 
